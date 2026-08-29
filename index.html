@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlvckStream</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+    <div id="apiKeyAlert" class="api-alert hidden">
+        <p>API key missing — add your TMDB key in <code>app.js</code> to use the app.</p>
+    </div>
+
+    <nav id="navbar" class="navbar">
+        <div class="navbar-inner">
+            <button id="logoBtn" class="logo" type="button">
+                <span class="logo-mark">▶</span>
+                <span class="logo-text">Blvck<span>Stream</span></span>
+            </button>
+
+            <div id="categoryNav" class="category-nav" role="tablist" aria-label="Browse categories">
+                <button class="cat-pill active" type="button" data-category="home">Home</button>
+                <button class="cat-pill" type="button" data-category="trending">Trending</button>
+                <button class="cat-pill" type="button" data-category="movies">Movies</button>
+                <button class="cat-pill" type="button" data-category="tv">TV Shows</button>
+                <button class="cat-pill" type="button" data-category="anime">Anime</button>
+                <button class="cat-pill" type="button" data-category="sports">Sports</button>
+            </div>
+
+            <div class="nav-actions">
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search titles..." autocomplete="off">
+                </div>
+
+                <select id="genreSelect" class="genre-select" aria-label="Filter by genre">
+                    <option value="">All Genres</option>
+                </select>
+
+                <button id="favoritesBtn" class="icon-btn" type="button" aria-label="Favorites">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </button>
+
+                <button id="themeToggleBtn" class="icon-btn" type="button" aria-label="Toggle theme">
+                    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- kept for JS compat; genre moved to navbar -->
+    <div id="genreFilter" class="hidden"></div>
+
+    <main id="mainContent">
+        <div id="homeView">
+            <section id="heroBanner" class="hero">
+                <div id="heroBackdrop" class="hero-backdrop"></div>
+                <div id="heroVideoWrap" class="hero-video-wrap hidden">
+                    <iframe id="heroVideoIframe" class="hero-video-iframe" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" title="Hero Trailer"></iframe>
+                </div>
+                <button id="heroVolumeBtn" class="hero-volume-btn hidden" type="button" aria-label="Mute audio">
+                    <svg id="heroVolumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>
+                <div class="hero-vignette"></div>
+                <div class="hero-content">
+                    <div class="hero-meta">
+                        <span id="heroTypeBadge" class="hero-type-badge">MOVIE</span>
+                        <span id="heroRating" class="hero-meta-item rating"></span>
+                        <span id="heroYear" class="hero-meta-item"></span>
+                    </div>
+                    <h1 id="heroTitle" class="hero-title"></h1>
+                    <p id="heroOverview" class="hero-overview"></p>
+                    <div class="hero-actions">
+                        <button id="heroWatchBtn" class="btn btn-play" type="button">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            Play
+                        </button>
+                        <button id="heroDetailsBtn" class="btn btn-details" type="button">Details</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="content-rows">
+                <section class="row-section platforms-section">
+                    <div class="row-header">
+                        <h2>Streaming Platforms</h2>
+                    </div>
+                    <div id="platformPills" class="platform-pills" role="list">
+                        <button class="platform-pill" type="button" data-provider-id="531">Paramount+</button>
+                        <button class="platform-pill" type="button" data-provider-id="8">Netflix</button>
+                        <button class="platform-pill" type="button" data-provider-id="15">Hulu</button>
+                        <button class="platform-pill" type="button" data-provider-id="9">Prime Video</button>
+                        <button class="platform-pill" type="button" data-provider-id="350">Apple TV+</button>
+                    </div>
+                </section>
+
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>Recently Watched</h2>
+                        <div class="row-controls">
+                            <button class="carousel-arrow" type="button" data-target="recentlyWatchedCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="recentlyWatchedCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="recentlyWatchedCarousel" class="carousel"></div>
+                    </div>
+                </section>
+
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>Now Playing</h2>
+                        <div class="row-controls">
+                            <button class="view-all-link" type="button" data-section="nowPlaying">View all →</button>
+                            <button class="carousel-arrow" type="button" data-target="nowPlayingCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="nowPlayingCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="nowPlayingCarousel" class="carousel"></div>
+                    </div>
+                </section>
+
+                <section class="row-section ranked-section">
+                    <div class="row-header ranked-header">
+                        <div class="ranked-title">
+                            <span class="ranked-top">TOP</span>
+                            <span class="ranked-sub">MOVIES<br>TODAY</span>
+                        </div>
+                        <div class="row-controls">
+                            <button class="view-all-link" type="button" data-section="topMovies">View all →</button>
+                            <button class="carousel-arrow" type="button" data-target="topMoviesCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="topMoviesCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="topMoviesCarousel" class="carousel ranked-carousel"></div>
+                    </div>
+                </section>
+
+                <section class="row-section ranked-section">
+                    <div class="row-header ranked-header">
+                        <div class="ranked-title">
+                            <span class="ranked-top">TOP</span>
+                            <span class="ranked-sub">SERIES<br>TODAY</span>
+                        </div>
+                        <div class="row-controls">
+                            <button class="view-all-link" type="button" data-section="topSeries">View all →</button>
+                            <button class="carousel-arrow" type="button" data-target="topSeriesCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="topSeriesCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="topSeriesCarousel" class="carousel ranked-carousel"></div>
+                    </div>
+                </section>
+
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>Action</h2>
+                        <div class="row-controls">
+                            <button class="view-all-link" type="button" data-section="action">View all →</button>
+                            <button class="carousel-arrow" type="button" data-target="actionCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="actionCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="actionCarousel" class="carousel"></div>
+                    </div>
+                </section>
+
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>Comedy</h2>
+                        <div class="row-controls">
+                            <button class="view-all-link" type="button" data-section="comedy">View all →</button>
+                            <button class="carousel-arrow" type="button" data-target="comedyCarousel" data-dir="-1" aria-label="Previous">←</button>
+                            <button class="carousel-arrow" type="button" data-target="comedyCarousel" data-dir="1" aria-label="Next">→</button>
+                        </div>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="comedyCarousel" class="carousel"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+            <section id="searchResultsSection" class="grid-section hidden">
+                <h2 id="browseTitle" class="section-title">Search Results</h2>
+                <div id="searchResults" class="movie-grid"></div>
+            </section>
+
+            <section id="favoritesSection" class="grid-section hidden">
+                <h2 class="section-title">Your List</h2>
+                <div id="favoritesGrid" class="movie-grid"></div>
+            </section>
+
+            <section id="sportsSection" class="grid-section hidden">
+                <h2 class="section-title">Live Football Matches</h2>
+                <div id="sportsGrid" class="match-grid"></div>
+            </section>
+
+        <div id="playerView" class="player-view hidden">
+            <div class="player-shell">
+                <button id="backToHomeBtn" class="back-btn" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Browse
+                </button>
+
+                <div class="player-layout-grid">
+                    <div class="player-main-col">
+                        <div class="player-frame">
+                            <div id="videoContainer" class="video-container"></div>
+                            <div id="loadingSpinner" class="player-loader">
+                                <div class="spinner"></div>
+                                <span>Loading stream...</span>
+                            </div>
+                        </div>
+
+                        <div class="player-tv-bar hidden" id="tvEpisodeBar">
+                            <label>
+                                Season
+                                <select id="seasonSelect"></select>
+                            </label>
+                            <label>
+                                Episode
+                                <select id="episodeSelect"></select>
+                            </label>
+                        </div>
+
+                        <div id="videoSourceBar" class="video-source-bar">
+                            <span>Select Stream Server:</span>
+                            <div class="source-selector-wrap">
+                                <button id="sourceSelectorBtn" class="source-select-btn" type="button">
+                                    <span id="selectedSourceName">VidCore</span>
+                                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div id="sourceDropdownMenu" class="source-dropdown-menu hidden"></div>
+                            </div>
+                            <button id="downloadBtn" class="download-btn" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="player-sidebar-col">
+                        <div class="player-details">
+                            <div class="player-details-top">
+                                <div>
+                                    <h1 id="playerTitle" class="player-title"></h1>
+                                    <p id="playerReleaseDate" class="player-date"></p>
+                                </div>
+                                <button id="favoriteBtn" class="icon-btn icon-btn-lg" type="button" aria-label="Toggle favorite">
+                                    <svg id="favoriteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p id="playerOverview" class="player-overview"></p>
+                            <div class="disclaimer">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+                                </svg>
+                                <p>Streams are embedded from third-party sources. Ads in the player come from those services, not BlvckStream.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>More Like This</h2>
+                    </div>
+                    <div class="carousel-wrap">
+                        <div id="recommendedCarousel" class="carousel"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <div id="loadingSkeleton" class="loading-screen hidden">
+        <div class="loading-hero skeleton"></div>
+        <div class="loading-rows">
+            <div class="skeleton skeleton-title"></div>
+            <div class="loading-cards">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="onboardingModal" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-icon">▶</div>
+            <h2>Welcome to BlvckStream</h2>
+            <p>A free streaming aggregator powered by TMDB metadata and external embed sources.</p>
+            <ul>
+                <li>No media files hosted here</li>
+                <li>Videos play via third-party embeds</li>
+                <li>Ads may appear inside the player</li>
+            </ul>
+            <button id="closeOnboarding" class="btn btn-primary btn-full" type="button">Start Watching</button>
+        </div>
+    </div>
+
+    <div id="downloadModal" class="modal hidden">
+        <div class="modal-card download-modal-card">
+            <div class="modal-header">
+                <h2>Download Stream URL</h2>
+                <button id="closeDownloadModal" class="modal-close-btn" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="download-content">
+                <p class="download-info">Copy the HLS stream URL below and use it with yt-dlp or ffmpeg to download the video:</p>
+                <div class="stream-url-container">
+                    <input id="streamUrlInput" type="text" readonly class="stream-url-input">
+                    <button id="copyStreamUrlBtn" class="btn btn-secondary" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+                <div class="download-instructions">
+                    <h3>How to Download:</h3>
+                    <div class="instruction-block">
+                        <h4>Using yt-dlp (Recommended):</h4>
+                        <code>yt-dlp "[STREAM_URL]" -o "video.%(ext)s"</code>
+                    </div>
+                    <div class="instruction-block">
+                        <h4>Using ffmpeg:</h4>
+                        <code>ffmpeg -i "[STREAM_URL]" -c copy video.mp4</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=4"></script>
+</body>
+</html>
