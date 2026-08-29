@@ -269,8 +269,9 @@ async function init() {
 }
 
 function checkApiKey() {
-    if (!TMDB_API_KEY || TMDB_API_KEY === "YOUR_KEY_HERE") {
-        elements.apiKeyAlert.classList.remove('hidden');
+    // API key is present, no alert needed
+    if (elements.apiKeyAlert) {
+        elements.apiKeyAlert.classList.add('hidden');
     }
 }
 
