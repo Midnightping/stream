@@ -1,8 +1,9 @@
-// TMDB API Configuration (switching back to TMDB for reliability)
-const TMDB_API_KEY = "3a26347da92e2a6c5141f4e3fe0d6c2b";
+// TMDB API Configuration
+const TMDB_API_KEY = "";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original";
+const TMDB_PROXY_URL = "/api/tmdb";
 
 const SECTION_TITLES = {
     nowPlaying: 'Now Playing',
@@ -269,10 +270,17 @@ async function init() {
 }
 
 function checkApiKey() {
-    // API key is present, no alert needed
+    const hasValidKey = Boolean(TMDB_API_KEY && TMDB_API_KEY.trim() && TMDB_API_KEY !== 'YOUR_KEY_HERE');
+
     if (elements.apiKeyAlert) {
-        elements.apiKeyAlert.classList.add('hidden');
+        if (hasValidKey) {
+            elements.apiKeyAlert.classList.add('hidden');
+        } else {
+            elements.apiKeyAlert.classList.remove('hidden');
+        }
     }
+
+    return hasValidKey;
 }
 
 function applyTheme() {
@@ -410,12 +418,7 @@ function scrollCarousel(targetId, direction) {
 }
 
 async function fetchFromTMDB(endpoint) {
-    if (!TMDB_API_KEY) {
-        throw new Error('TMDB API Key is missing');
-    }
-
-    const separator = endpoint.includes('?') ? '&' : '?';
-    const url = `${TMDB_BASE_URL}${endpoint}${separator}api_key=${TMDB_API_KEY}`;
+    const url = `${TMDB_PROXY_URL}?path=${encodeURIComponent(endpoint)}`;
 
     try {
         const response = await fetch(url);
