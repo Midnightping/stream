@@ -270,17 +270,12 @@ async function init() {
 }
 
 function checkApiKey() {
-    const hasValidKey = Boolean(TMDB_API_KEY && TMDB_API_KEY.trim() && TMDB_API_KEY !== 'YOUR_KEY_HERE');
-
+    // API key is handled server-side via the /api/tmdb proxy
+    // Always hide the alert and return true - the proxy will return errors if the key is missing
     if (elements.apiKeyAlert) {
-        if (hasValidKey) {
-            elements.apiKeyAlert.classList.add('hidden');
-        } else {
-            elements.apiKeyAlert.classList.remove('hidden');
-        }
+        elements.apiKeyAlert.classList.add('hidden');
     }
-
-    return hasValidKey;
+    return true;
 }
 
 function applyTheme() {
