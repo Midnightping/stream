@@ -131,6 +131,9 @@ const elements = {
     heroTypeBadge: document.getElementById('heroTypeBadge'),
     heroWatchBtn: document.getElementById('heroWatchBtn'),
     heroDetailsBtn: document.getElementById('heroDetailsBtn'),
+    heroDots: document.getElementById('heroDots'),
+    nowWatchingList: document.getElementById('nowWatchingList'),
+    genreChips: document.getElementById('genreChips'),
     nowPlayingCarousel: document.getElementById('nowPlayingCarousel'),
     topMoviesCarousel: document.getElementById('topMoviesCarousel'),
     topSeriesCarousel: document.getElementById('topSeriesCarousel'),
@@ -329,6 +332,17 @@ function setupEventListeners() {
     elements.favoritesBtn.addEventListener('click', toggleFavoritesView);
     elements.genreSelect.addEventListener('change', (e) => handleGenreFilter(e.target.value));
 
+    if (elements.genreChips) {
+        elements.genreChips.addEventListener('click', (e) => {
+            const chip = e.target.closest('.genre-chip');
+            if (!chip) return;
+            elements.genreChips.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            const genreId = chip.getAttribute('data-genre-id');
+            handleGenreFilter(genreId);
+        });
+    }
+
     elements.categoryNav?.querySelectorAll('.cat-pill').forEach((btn) => {
         btn.addEventListener('click', () => handleCategoryClick(btn.dataset.category));
     });
@@ -505,7 +519,7 @@ async function loadNowPlaying() {
         state.sections.nowPlaying = movies;
         if (movies.length > 0) {
             state.activeMovie = movies[0];
-            updateHeroBanner(movies[0]);
+            updateHeroBanner(movies[0], movies);
             renderCarousel(elements.nowPlayingCarousel, movies);
         } else {
             elements.nowPlayingCarousel.innerHTML = '<p class="empty-state">No titles available</p>';
@@ -741,21 +755,81 @@ async function showSectionGrid(sectionKey) {
     }
 }
 
-function updateHeroBanner(item) {
+function renderNowWatchingList(items) {
+    if (!elements.nowWatchingList) return;
+    elements.nowWatchingList.innerHTML = '';
+    const slice = items.slice(1, 4);
+    slice.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'now-watching-card';
+        const imgUrl = item.backdrop_path
+            ? `${TMDB_IMAGE_BASE_URL}${item.backdrop_path}`
+            : (item.poster_path ? `${TMDB_IMAGE_BASE_URL}${item.poster_path}` : '');
+        
+        const type = mediaTypeOf(item) === 'tv' ? 'Series' : 'Movie';
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : '4.8';
+        const year = itemYear(item);
+
+        card.innerHTML = `
+            <div class="now-watching-thumb">
+                <img src="${imgUrl}" alt="${itemTitle(item)}" loading="lazy">
+                <div class="now-watching-play">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+            </div>
+            <div class="now-watching-info">
+                <div class="now-watching-name">${itemTitle(item)}</div>
+                <div class="now-watching-sub">${year} · ${type}</div>
+                <div class="now-watching-meta">
+                    <span>★ ${rating} IMDB</span>
+                </div>
+            </div>
+        `;
+        card.addEventListener('click', () => showPlayerView(item));
+        elements.nowWatchingList.appendChild(card);
+    });
+}
+
+function updateHeroBanner(item, moviesList = []) {
     const backdropUrl = item.backdrop_path
         ? `${TMDB_BACKDROP_BASE_URL}${item.backdrop_path}`
-        : '';
+        : (item.poster_path ? `${TMDB_IMAGE_BASE_URL}${item.poster_path}` : '');
 
-    elements.heroBackdrop.style.backgroundImage = backdropUrl ? `url(${backdropUrl})` : 'none';
-    elements.heroTitle.textContent = itemTitle(item);
-    elements.heroOverview.textContent = item.overview || 'No description available.';
-    elements.heroYear.textContent = itemYear(item);
-    elements.heroRating.textContent = item.vote_average
-        ? `★ ${item.vote_average.toFixed(1)}`
-        : '—';
+    if (elements.heroBackdrop) {
+        elements.heroBackdrop.style.backgroundImage = backdropUrl ? `url(${backdropUrl})` : 'none';
+    }
+    if (elements.heroTitle) elements.heroTitle.textContent = itemTitle(item);
+    if (elements.heroOverview) elements.heroOverview.textContent = item.overview || 'No description available.';
+    if (elements.heroYear) elements.heroYear.textContent = itemYear(item);
+    if (elements.heroRating) {
+        elements.heroRating.textContent = item.vote_average
+            ? `★ ${item.vote_average.toFixed(1)} IMDB`
+            : '★ 4.8 IMDB';
+    }
 
     if (elements.heroTypeBadge) {
         elements.heroTypeBadge.textContent = mediaTypeOf(item) === 'tv' ? 'TV SERIES' : 'MOVIE';
+    }
+
+    // Hero carousel dots
+    if (elements.heroDots && Array.isArray(moviesList) && moviesList.length > 0) {
+        elements.heroDots.innerHTML = '';
+        const dotsCount = Math.min(4, moviesList.length);
+        for (let i = 0; i < dotsCount; i++) {
+            const dot = document.createElement('div');
+            dot.className = `hero-dot ${moviesList[i].id === item.id ? 'active' : ''}`;
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                state.activeMovie = moviesList[i];
+                updateHeroBanner(moviesList[i], moviesList);
+            });
+            elements.heroDots.appendChild(dot);
+        }
+    }
+
+    // Now watching panel
+    if (Array.isArray(moviesList) && moviesList.length > 1) {
+        renderNowWatchingList(moviesList);
     }
 
     loadHeroTrailer(item);
@@ -763,6 +837,14 @@ function updateHeroBanner(item) {
 
 async function loadHeroTrailer(item) {
     if (!elements.heroVideoWrap || !elements.heroVideoIframe) return;
+
+    // On mobile screens, skip trailer entirely — just keep the poster backdrop
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+        elements.heroVideoWrap.classList.add('hidden');
+        if (elements.heroVolumeBtn) elements.heroVolumeBtn.classList.add('hidden');
+        return;
+    }
 
     elements.heroVideoWrap.classList.add('hidden');
     if (elements.heroVolumeBtn) elements.heroVolumeBtn.classList.add('hidden');
@@ -917,25 +999,24 @@ function createMovieCard(item, options = {}) {
 
     const posterUrl = item.poster_path
         ? `${TMDB_IMAGE_BASE_URL}${item.poster_path}`
-        : 'https://via.placeholder.com/500x750/14141a/71717a?text=No+Image';
+        : 'https://via.placeholder.com/500x750/f4f4f7/a1a1aa?text=No+Image';
 
-    const year = itemYear(item);
     const rank = options.rank;
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : '4.8';
 
     card.innerHTML = `
-        <div class="poster-wrap">
-            <img src="${posterUrl}" alt="${itemTitle(item)}" loading="lazy" onerror="this.src='https://via.placeholder.com/500x750/14141a/71717a?text=No+Image'">
-            ${ratingRingHTML(item.vote_average)}
-            <div class="play-icon">
+        <div class="card-poster">
+            <img src="${posterUrl}" alt="${itemTitle(item)}" loading="lazy">
+            <div class="card-play-overlay">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </div>
-            <div class="card-overlay">
-                <p class="card-title line-clamp-2">${itemTitle(item)}</p>
-                <p class="card-year">${year}</p>
-            </div>
-            ${typeof rank === 'number' ? `<div class="card-rank">${rank}</div>` : ''}
-            ${isFavorite(item) ? '<div class="card-fav"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>' : ''}
+            ${typeof rank === 'number' ? `<div class="card-rank-badge">${rank}</div>` : ''}
         </div>
+        <div class="card-meta-row">
+            <span class="card-rating">${rating}</span>
+            <span class="card-imdb">IMDB</span>
+        </div>
+        <div class="card-title">${itemTitle(item)}</div>
     `;
 
     card.addEventListener('click', () => showPlayerView(item));

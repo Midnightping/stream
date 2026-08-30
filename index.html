@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=8">
+    <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
     <div id="apiKeyAlert" class="api-alert hidden">
@@ -66,49 +66,100 @@
 
     <main id="mainContent">
         <div id="homeView">
-            <section id="heroBanner" class="hero">
-                <div id="heroBackdrop" class="hero-backdrop"></div>
-                <div id="heroVideoWrap" class="hero-video-wrap hidden">
-                    <iframe id="heroVideoIframe" class="hero-video-iframe" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" title="Hero Trailer"></iframe>
-                </div>
-                <button id="heroVolumeBtn" class="hero-volume-btn hidden" type="button" aria-label="Mute audio">
-                    <svg id="heroVolumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    </svg>
-                </button>
-                <div class="hero-vignette"></div>
-                <div class="hero-content">
-                    <div class="hero-meta">
-                        <span id="heroTypeBadge" class="hero-type-badge">MOVIE</span>
-                        <span id="heroRating" class="hero-meta-item rating"></span>
-                        <span id="heroYear" class="hero-meta-item"></span>
-                    </div>
-                    <h1 id="heroTitle" class="hero-title"></h1>
-                    <p id="heroOverview" class="hero-overview"></p>
-                    <div class="hero-actions">
-                        <button id="heroWatchBtn" class="btn btn-play" type="button">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                            Play
+
+            <!-- ── 2-Column Hero ── -->
+            <section class="home-hero-section">
+                <div class="home-hero-inner">
+
+                    <!-- Left: Big Featured Card -->
+                    <div class="hero-featured-card" id="heroBanner">
+                        <div id="heroBackdrop" class="hero-card-poster"></div>
+                        <div id="heroVideoWrap" class="hero-video-wrap hidden">
+                            <iframe id="heroVideoIframe" class="hero-video-iframe" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" title="Hero Trailer"></iframe>
+                        </div>
+                        <button id="heroVolumeBtn" class="hero-volume-btn hidden" type="button" aria-label="Mute audio">
+                            <svg id="heroVolumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
                         </button>
-                        <button id="heroDetailsBtn" class="btn btn-details" type="button">Details</button>
+                        <div class="hero-card-gradient"></div>
+
+                        <!-- Carousel dots -->
+                        <div class="hero-card-dots" id="heroDots"></div>
+
+                        <!-- Play button center -->
+                        <button id="heroWatchBtn" class="hero-card-play-btn" type="button" aria-label="Play">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+
+                        <!-- Bottom info -->
+                        <div class="hero-card-info">
+                            <span id="heroYear" class="hero-card-year"></span>
+                            <h2 id="heroTitle" class="hero-card-title"></h2>
+                            <div class="hero-card-meta">
+                                <span id="heroRating" class="hero-card-rating"></span>
+                                <span id="heroTypeBadge" class="hero-card-badge">MOVIE</span>
+                                <button id="heroDetailsBtn" class="hero-card-details-btn" type="button">More Info</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Now Watching Panel -->
+                    <div class="now-watching-panel">
+                        <h3 class="now-watching-title">Now watching</h3>
+                        <div id="nowWatchingList" class="now-watching-list"></div>
                     </div>
                 </div>
             </section>
 
+            <!-- ── Genre Chips Row ── -->
+            <section class="genre-row-section">
+                <div class="genre-row-inner">
+                    <span class="genre-label">Find by<br>genre</span>
+                    <div class="genre-chips" id="genreChips">
+                        <button class="genre-chip active" data-genre-id="" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            All
+                        </button>
+                        <button class="genre-chip" data-genre-id="28" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                            Action
+                        </button>
+                        <button class="genre-chip" data-genre-id="35" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                            Comedy
+                        </button>
+                        <button class="genre-chip" data-genre-id="10751" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Family
+                        </button>
+                        <button class="genre-chip" data-genre-id="18" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            Drama
+                        </button>
+                        <button class="genre-chip" data-genre-id="878" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                            Sci-fi
+                        </button>
+                        <button class="genre-chip" data-genre-id="14" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            Fantasy
+                        </button>
+                        <button class="genre-chip" data-genre-id="53" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/></svg>
+                            Thriller
+                        </button>
+                        <button class="genre-chip" data-genre-id="99" type="button">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            Documentary
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Content Rows ── -->
             <div class="content-rows">
-                <section class="row-section platforms-section">
-                    <div class="row-header">
-                        <h2>Streaming Platforms</h2>
-                    </div>
-                    <div id="platformPills" class="platform-pills" role="list">
-                        <button class="platform-pill" type="button" data-provider-id="531">Paramount+</button>
-                        <button class="platform-pill" type="button" data-provider-id="8">Netflix</button>
-                        <button class="platform-pill" type="button" data-provider-id="15">Hulu</button>
-                        <button class="platform-pill" type="button" data-provider-id="9">Prime Video</button>
-                        <button class="platform-pill" type="button" data-provider-id="350">Apple TV+</button>
-                    </div>
-                </section>
 
                 <section class="row-section">
                     <div class="row-header">
@@ -125,7 +176,7 @@
 
                 <section class="row-section">
                     <div class="row-header">
-                        <h2>Now Playing</h2>
+                        <h2>Trending</h2>
                         <div class="row-controls">
                             <button class="view-all-link" type="button" data-section="nowPlaying">View all →</button>
                             <button class="carousel-arrow" type="button" data-target="nowPlayingCarousel" data-dir="-1" aria-label="Previous">←</button>
@@ -137,12 +188,9 @@
                     </div>
                 </section>
 
-                <section class="row-section ranked-section">
-                    <div class="row-header ranked-header">
-                        <div class="ranked-title">
-                            <span class="ranked-top">TOP</span>
-                            <span class="ranked-sub">MOVIES<br>TODAY</span>
-                        </div>
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>New Releases</h2>
                         <div class="row-controls">
                             <button class="view-all-link" type="button" data-section="topMovies">View all →</button>
                             <button class="carousel-arrow" type="button" data-target="topMoviesCarousel" data-dir="-1" aria-label="Previous">←</button>
@@ -150,16 +198,13 @@
                         </div>
                     </div>
                     <div class="carousel-wrap">
-                        <div id="topMoviesCarousel" class="carousel ranked-carousel"></div>
+                        <div id="topMoviesCarousel" class="carousel"></div>
                     </div>
                 </section>
 
-                <section class="row-section ranked-section">
-                    <div class="row-header ranked-header">
-                        <div class="ranked-title">
-                            <span class="ranked-top">TOP</span>
-                            <span class="ranked-sub">SERIES<br>TODAY</span>
-                        </div>
+                <section class="row-section">
+                    <div class="row-header">
+                        <h2>Top Series</h2>
                         <div class="row-controls">
                             <button class="view-all-link" type="button" data-section="topSeries">View all →</button>
                             <button class="carousel-arrow" type="button" data-target="topSeriesCarousel" data-dir="-1" aria-label="Previous">←</button>
@@ -167,7 +212,7 @@
                         </div>
                     </div>
                     <div class="carousel-wrap">
-                        <div id="topSeriesCarousel" class="carousel ranked-carousel"></div>
+                        <div id="topSeriesCarousel" class="carousel"></div>
                     </div>
                 </section>
 
@@ -198,6 +243,9 @@
                         <div id="comedyCarousel" class="carousel"></div>
                     </div>
                 </section>
+
+                <!-- Platform pills kept for JS compat, hidden -->
+                <div id="platformPills" class="hidden"></div>
             </div>
         </div>
 
