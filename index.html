@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
     <div id="apiKeyAlert" class="api-alert hidden">
@@ -24,10 +24,14 @@
             <div id="categoryNav" class="category-nav" role="tablist" aria-label="Browse categories">
                 <button class="cat-pill active" type="button" data-category="home">Home</button>
                 <button class="cat-pill" type="button" data-category="trending">Trending</button>
+                <button class="cat-pill sports-nav-pill" type="button" data-category="sports">
+                    <span class="sports-nav-dot"></span>
+                    <span>Sports</span>
+                    <span class="sports-live-tag-mini">LIVE</span>
+                </button>
                 <button class="cat-pill" type="button" data-category="movies">Movies</button>
                 <button class="cat-pill" type="button" data-category="tv">TV Shows</button>
                 <button class="cat-pill" type="button" data-category="anime">Anime</button>
-                <button class="cat-pill" type="button" data-category="sports">Sports</button>
             </div>
 
             <div class="nav-actions">
@@ -253,6 +257,20 @@
                         <button class="sports-pill" type="button" data-sport="american-football">🏈 NFL / Football</button>
                         <button class="sports-pill" type="button" data-sport="cricket">🏏 Cricket</button>
                         <button class="sports-pill" type="button" data-sport="rugby">🏉 Rugby</button>
+                    </div>
+                </div>
+
+                <!-- Top Leagues Filter Sub-navigation -->
+                <div class="sports-subnav-container league-subnav">
+                    <div class="sports-subnav-scroll" id="sportsLeagueNav">
+                        <button class="league-pill active" type="button" data-league="all">🏆 All Matches</button>
+                        <button class="league-pill" type="button" data-league="popular">🔥 Popular & Top</button>
+                        <button class="league-pill" type="button" data-league="ucl">🇪🇺 Champions League</button>
+                        <button class="league-pill" type="button" data-league="epl">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                        <button class="league-pill" type="button" data-league="laliga">🇪🇸 La Liga</button>
+                        <button class="league-pill" type="button" data-league="seriea">🇮🇹 Serie A</button>
+                        <button class="league-pill" type="button" data-league="bundesliga">🇩🇪 Bundesliga</button>
+                        <button class="league-pill" type="button" data-league="ligue1">🇫🇷 Ligue 1</button>
                     </div>
                 </div>
 

@@ -1460,6 +1460,99 @@ body.light .toast-error {
     box-shadow: 0 4px 16px rgba(229, 9, 20, 0.35);
 }
 
+/* Sports Navbar Pill Standout Highlight */
+.cat-pill.sports-nav-pill {
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.22), rgba(255, 59, 48, 0.28));
+    border: 1px solid rgba(229, 9, 20, 0.6);
+    color: #ffffff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    box-shadow: 0 0 14px rgba(229, 9, 20, 0.35);
+}
+
+.cat-pill.sports-nav-pill:hover {
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.45), rgba(255, 59, 48, 0.5));
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+    border-color: #e50914;
+}
+
+.cat-pill.sports-nav-pill.active {
+    background: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+    box-shadow: 0 0 22px rgba(229, 9, 20, 0.7);
+}
+
+.sports-nav-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff3b30;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #ff3b30;
+    animation: liveDotPulse 1.4s infinite alternate;
+}
+
+@keyframes liveDotPulse {
+    0% { transform: scale(0.85); opacity: 0.6; }
+    100% { transform: scale(1.35); opacity: 1; }
+}
+
+.sports-live-tag-mini {
+    font-size: 0.58rem;
+    font-weight: 900;
+    background: #e50914;
+    color: #fff;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+/* League Sub-nav Pills */
+.sports-subnav-container.league-subnav {
+    margin-top: -0.75rem;
+}
+
+.league-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.2s var(--ease);
+}
+
+.league-pill:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.league-pill.active {
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.85), rgba(200, 10, 10, 0.95));
+    border-color: #e50914;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(229, 9, 20, 0.35);
+}
+
+.pill-count {
+    font-size: 0.7rem;
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
 /* Sports Content Container */
 .sports-container {
     display: flex;

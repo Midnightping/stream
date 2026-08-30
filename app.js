@@ -52,6 +52,8 @@ const state = {
     sportsSources: [],
     sportsSourceIndex: 0,
     selectedSport: 'football',
+    selectedLeague: 'all',
+    allSportsMatches: [],
     featuredSportsMatch: null
 };
 
@@ -153,6 +155,7 @@ const elements = {
     sportsHeroTime: document.getElementById('sportsHeroTime'),
     sportsHeroWatchBtn: document.getElementById('sportsHeroWatchBtn'),
     sportsCategoryNav: document.getElementById('sportsCategoryNav'),
+    sportsLeagueNav: document.getElementById('sportsLeagueNav'),
     backToHomeBtn: document.getElementById('backToHomeBtn'),
     videoContainer: document.getElementById('videoContainer'),
     loadingSpinner: document.getElementById('loadingSpinner'),
@@ -413,6 +416,19 @@ function setupEventListeners() {
             const sport = pill.getAttribute('data-sport') || 'football';
             state.selectedSport = sport;
             loadSportsMatches(sport);
+        });
+    }
+
+    // Sports League Sub-nav Listener
+    if (elements.sportsLeagueNav) {
+        elements.sportsLeagueNav.addEventListener('click', (e) => {
+            const pill = e.target.closest('.league-pill');
+            if (!pill) return;
+            document.querySelectorAll('.league-pill').forEach(btn => btn.classList.remove('active'));
+            pill.classList.add('active');
+            const league = pill.getAttribute('data-league') || 'all';
+            state.selectedLeague = league;
+            applySportsLeagueFilter();
         });
     }
 
@@ -1278,6 +1294,133 @@ function isMatchLive(match) {
     return now >= start - 20 * 60 * 1000 && now <= start + 3 * 60 * 60 * 1000;
 }
 
+const TOP_LEAGUE_KEYWORDS = {
+    ucl: ['Champions League', 'UCL', 'UEFA Champions', 'Europa League', 'Conference League', 'Super Cup'],
+    epl: ['Premier League', 'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton', 'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich', 'Leicester', 'Liverpool', 'Man City', 'Manchester City', 'Man United', 'Manchester United', 'Newcastle', 'Nottingham Forest', 'Southampton', 'Tottenham', 'Spurs', 'West Ham', 'Wolves', 'Sunderland', 'Leeds'],
+    laliga: ['La Liga', 'LaLiga', 'Real Madrid', 'Barcelona', 'Atletico Madrid', 'Sevilla', 'Real Betis', 'Athletic Bilbao', 'Real Sociedad', 'Valencia', 'Villarreal', 'Girona', 'Mallorca', 'Osasuna', 'Getafe', 'Celta Vigo', 'Rayo Vallecano', 'Espanyol', 'Las Palmas'],
+    seriea: ['Serie A', 'Inter', 'AC Milan', 'Juventus', 'Napoli', 'Atalanta', 'Roma', 'Lazio', 'Fiorentina', 'Torino', 'Bologna', 'Udinese', 'Genoa', 'Monza', 'Parma', 'Como'],
+    bundesliga: ['Bundesliga', 'Bayern', 'Leverkusen', 'Borussia Dortmund', 'Dortmund', 'RB Leipzig', 'Leipzig', 'Eintracht Frankfurt', 'Frankfurt', 'Wolfsburg', 'Gladbach', 'Stuttgart', 'Freiburg', 'Mainz', 'Werder Bremen', 'Hoffenheim', 'Union Berlin', 'St Pauli', 'Kaiserslautern', 'Hannover'],
+    ligue1: ['Ligue 1', 'Paris FC', 'PSG', 'Paris Saint-Germain', 'Marseille', 'Monaco', 'Lyon', 'Lille', 'Lens', 'Nice', 'Rennes', 'Reims', 'Strasbourg', 'Brest', 'Nantes', 'Toulouse']
+};
+
+function detectMatchLeagueKey(match) {
+    const text = (match.title || '') + ' ' + (match.league || '') + ' ' + (match.competition || '');
+    for (const [key, keywords] of Object.entries(TOP_LEAGUE_KEYWORDS)) {
+        if (keywords.some(kw => text.toLowerCase().includes(kw.toLowerCase()))) {
+            return key;
+        }
+    }
+    return null;
+}
+
+function formatMatchLeague(match) {
+    if (match.league) return match.league;
+    if (match.competition) return match.competition;
+    
+    const key = detectMatchLeagueKey(match);
+    if (key === 'ucl') return 'UEFA Champions League';
+    if (key === 'epl') return 'Premier League';
+    if (key === 'laliga') return 'La Liga';
+    if (key === 'seriea') return 'Serie A';
+    if (key === 'bundesliga') return 'Bundesliga';
+    if (key === 'ligue1') return 'Ligue 1';
+
+    return match.category ? match.category.toUpperCase() : 'FOOTBALL';
+}
+
+function sortMatchesByPopularity(matches) {
+    return matches.slice().sort((a, b) => {
+        const liveA = isMatchLive(a) ? 1 : 0;
+        const liveB = isMatchLive(b) ? 1 : 0;
+        if (liveA !== liveB) return liveB - liveA; // Live matches first
+
+        const popA = (a.popular || detectMatchLeagueKey(a) !== null) ? 1 : 0;
+        const popB = (b.popular || detectMatchLeagueKey(b) !== null) ? 1 : 0;
+        if (popA !== popB) return popB - popA; // Popular & Top Leagues next
+
+        return (a.date || 0) - (b.date || 0); // Earliest next
+    });
+}
+
+function updateLeagueNavPills(matches) {
+    if (!elements.sportsLeagueNav) return;
+    
+    const counts = {
+        all: matches.length,
+        popular: matches.filter(m => m.popular || detectMatchLeagueKey(m) !== null).length,
+        ucl: matches.filter(m => detectMatchLeagueKey(m) === 'ucl').length,
+        epl: matches.filter(m => detectMatchLeagueKey(m) === 'epl').length,
+        laliga: matches.filter(m => detectMatchLeagueKey(m) === 'laliga').length,
+        seriea: matches.filter(m => detectMatchLeagueKey(m) === 'seriea').length,
+        bundesliga: matches.filter(m => detectMatchLeagueKey(m) === 'bundesliga').length,
+        ligue1: matches.filter(m => detectMatchLeagueKey(m) === 'ligue1').length
+    };
+
+    const isFootball = state.selectedSport === 'football';
+
+    let html = `
+        <button class="league-pill ${state.selectedLeague === 'all' ? 'active' : ''}" type="button" data-league="all">
+            🏆 All Matches <span class="pill-count">${counts.all}</span>
+        </button>
+        <button class="league-pill ${state.selectedLeague === 'popular' ? 'active' : ''}" type="button" data-league="popular">
+            🔥 Popular & Top <span class="pill-count">${counts.popular}</span>
+        </button>
+    `;
+
+    if (isFootball) {
+        html += `
+            <button class="league-pill ${state.selectedLeague === 'ucl' ? 'active' : ''}" type="button" data-league="ucl">
+                🇪🇺 Champions League ${counts.ucl ? `<span class="pill-count">${counts.ucl}</span>` : ''}
+            </button>
+            <button class="league-pill ${state.selectedLeague === 'epl' ? 'active' : ''}" type="button" data-league="epl">
+                🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League ${counts.epl ? `<span class="pill-count">${counts.epl}</span>` : ''}
+            </button>
+            <button class="league-pill ${state.selectedLeague === 'laliga' ? 'active' : ''}" type="button" data-league="laliga">
+                🇪🇸 La Liga ${counts.laliga ? `<span class="pill-count">${counts.laliga}</span>` : ''}
+            </button>
+            <button class="league-pill ${state.selectedLeague === 'seriea' ? 'active' : ''}" type="button" data-league="seriea">
+                🇮🇹 Serie A ${counts.seriea ? `<span class="pill-count">${counts.seriea}</span>` : ''}
+            </button>
+            <button class="league-pill ${state.selectedLeague === 'bundesliga' ? 'active' : ''}" type="button" data-league="bundesliga">
+                🇩🇪 Bundesliga ${counts.bundesliga ? `<span class="pill-count">${counts.bundesliga}</span>` : ''}
+            </button>
+            <button class="league-pill ${state.selectedLeague === 'ligue1' ? 'active' : ''}" type="button" data-league="ligue1">
+                🇫🇷 Ligue 1 ${counts.ligue1 ? `<span class="pill-count">${counts.ligue1}</span>` : ''}
+            </button>
+        `;
+    }
+
+    elements.sportsLeagueNav.innerHTML = html;
+}
+
+function applySportsLeagueFilter() {
+    const rawMatches = state.allSportsMatches || [];
+    const sorted = sortMatchesByPopularity(rawMatches);
+
+    let filtered = sorted;
+    if (state.selectedLeague && state.selectedLeague !== 'all') {
+        if (state.selectedLeague === 'popular') {
+            filtered = sorted.filter(m => m.popular || detectMatchLeagueKey(m) !== null);
+        } else {
+            filtered = sorted.filter(m => detectMatchLeagueKey(m) === state.selectedLeague);
+        }
+    }
+
+    const liveMatches = filtered.filter((match) => isMatchLive(match));
+    const upcomingMatches = filtered.filter((match) => !isMatchLive(match));
+
+    // Pick top featured match
+    const featured = liveMatches[0] || filtered.find(m => m.popular) || filtered[0] || sorted[0];
+    state.featuredSportsMatch = featured;
+    if (featured) {
+        renderSportsHero(featured);
+    } else {
+        if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+    }
+
+    renderSportsMatches(liveMatches, upcomingMatches, state.selectedSport, state.selectedLeague);
+}
+
 function matchTeamDetails(match) {
     const homeTeam = match.teams?.home?.name || match.homeTeam || match.home || match.title?.split(' vs')[0] || 'Home Team';
     const awayTeam = match.teams?.away?.name || match.awayTeam || match.away || match.title?.split(/vs\.?\s/i)[1] || 'Away Team';
@@ -1297,6 +1440,7 @@ async function fetchSportsDetail(matchId, category = state.selectedSport || 'foo
 
 async function loadSportsMatches(category = state.selectedSport || 'football') {
     state.selectedSport = category;
+    state.selectedLeague = 'all';
     showLoading();
     try {
         const response = await fetch(`${SPORTSRC_API}/?data=matches&category=${encodeURIComponent(category)}`);
@@ -1304,17 +1448,14 @@ async function loadSportsMatches(category = state.selectedSport || 'football') {
         const matches = data?.data || data;
 
         if (Array.isArray(matches) && matches.length) {
-            const liveMatches = matches.filter((match) => isMatchLive(match));
-            const upcomingMatches = matches.filter((match) => !isMatchLive(match));
-            
-            // Pick featured match (first live match, or first popular, or first available)
-            const featured = liveMatches[0] || matches.find(m => m.popular) || matches[0];
-            state.featuredSportsMatch = featured;
-            renderSportsHero(featured);
-            renderSportsMatches(liveMatches, upcomingMatches, category);
+            state.allSportsMatches = matches;
+            updateLeagueNavPills(matches);
+            applySportsLeagueFilter();
             showSportsView();
         } else {
+            state.allSportsMatches = [];
             if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+            updateLeagueNavPills([]);
             elements.sportsGrid.innerHTML = `
                 <div class="empty-state" style="text-align:center; padding:3.5rem 1rem;">
                     <div style="font-size:3rem; margin-bottom:1rem;">🏟️</div>
@@ -1352,7 +1493,7 @@ function renderSportsHero(match) {
     }
 
     const { homeTeam, awayTeam, homeBadge, awayBadge } = matchTeamDetails(match);
-    const league = match.league || match.competition || (match.category ? match.category.toUpperCase() : 'Live Sports');
+    const league = formatMatchLeague(match);
     const live = isMatchLive(match);
     const matchDate = parseMatchDate(match.date);
     const time = matchDate
@@ -1398,13 +1539,15 @@ function renderSportsHero(match) {
     elements.sportsHero.classList.remove('hidden');
 }
 
-function renderSportsMatches(liveMatches, upcomingMatches, category) {
+function renderSportsMatches(liveMatches, upcomingMatches, category, leagueKey = 'all') {
     elements.sportsGrid.innerHTML = '';
 
     if ((!liveMatches || liveMatches.length === 0) && (!upcomingMatches || upcomingMatches.length === 0)) {
+        const leagueName = leagueKey !== 'all' ? leagueKey.toUpperCase() : category;
         elements.sportsGrid.innerHTML = `
             <div class="empty-state" style="text-align:center; padding:3rem 1rem;">
-                <p style="font-size:1.1rem; color:var(--text); font-weight:700;">No ${category} matches available right now</p>
+                <p style="font-size:1.1rem; color:var(--text); font-weight:700;">No live or upcoming matches found for ${leagueName}</p>
+                <p style="color:var(--text-secondary); margin-top:0.4rem; font-size:0.9rem;">Select "All Matches" above to view all available fixtures.</p>
             </div>
         `;
         return;
@@ -1433,7 +1576,7 @@ function renderSportsMatches(liveMatches, upcomingMatches, category) {
         upcomingSection.innerHTML = `
             <div class="sports-group-header">
                 <h3 class="sports-group-title">
-                    <span>📅 Upcoming Fixtures & Streams</span>
+                    <span>📅 Upcoming Fixtures & Top Matches</span>
                     <span class="sports-group-count">${upcomingMatches.length}</span>
                 </h3>
             </div>
@@ -1450,7 +1593,7 @@ function createMatchCard(match) {
     card.className = 'match-card-modern';
 
     const { homeTeam, awayTeam, homeBadge, awayBadge } = matchTeamDetails(match);
-    const league = match.league || match.competition || (match.category ? match.category.toUpperCase() : 'Sports');
+    const league = formatMatchLeague(match);
     const live = isMatchLive(match);
     const matchDate = parseMatchDate(match.date);
     const time = matchDate
