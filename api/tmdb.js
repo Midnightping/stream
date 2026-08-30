@@ -12,8 +12,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const tmdbUrl = `https://api.themoviedb.org/3${path}${path.includes('?') ? '&' : '?'}api_key=${apiKey}`;
-    const response = await fetch(tmdbUrl);
+    const isBearer = apiKey.startsWith('eyJ');
+    const headers = { 'accept': 'application/json' };
+    let tmdbUrl;
+
+    if (isBearer) {
+      headers['Authorization'] = `Bearer ${apiKey.trim()}`;
+      tmdbUrl = `https://api.themoviedb.org/3${path}`;
+    } else {
+      tmdbUrl = `https://api.themoviedb.org/3${path}${path.includes('?') ? '&' : '?'}api_key=${apiKey.trim()}`;
+    }
+
+    const response = await fetch(tmdbUrl, { headers });
 
     if (!response.ok) {
       const text = await response.text();
