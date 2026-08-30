@@ -315,6 +315,7 @@ function setupEventListeners() {
 
     elements.themeToggleBtn.addEventListener('click', toggleTheme);
     window.addEventListener('scroll', handleNavbarScroll);
+    window.addEventListener('scroll', handleInfiniteScroll);
 
     let searchTimeout;
     elements.searchInput.addEventListener('input', (e) => {
@@ -559,10 +560,16 @@ async function handleSearch(query) {
 
     showLoading();
     try {
-        const data = await fetchFromTMDB(`/search/multi?query=${encodeURIComponent(query)}&language=en-US`);
+        const endpoint = `/search/multi?query=${encodeURIComponent(query)}&language=en-US`;
+        const data = await fetchFromTMDB(endpoint);
         const results = withPosters(data.results);
         state.searchResults = results;
-        renderBrowseGrid(results, `Results for “${query.trim()}”`);
+        renderBrowseGrid(results, `Results for “${query.trim()}”`, {
+            page: data.page,
+            totalPages: data.total_pages,
+            endpoint: endpoint,
+            fallback: undefined
+        });
         hideLoading();
     } catch (error) {
         console.error('Search error:', error);
@@ -579,10 +586,16 @@ async function handleGenreFilter(genreId) {
 
     showLoading();
     try {
-        const data = await fetchFromTMDB(`/discover/movie?with_genres=${genreId}&language=en-US&sort_by=popularity.desc`);
+        const endpoint = `/discover/movie?with_genres=${genreId}&language=en-US&sort_by=popularity.desc`;
+        const data = await fetchFromTMDB(endpoint);
         const movies = withPosters(tagMedia(data.results, 'movie'));
         const genreName = state.genres.find((g) => String(g.id) === String(genreId))?.name || 'Genre';
-        renderBrowseGrid(movies, genreName);
+        renderBrowseGrid(movies, genreName, {
+            page: data.page,
+            totalPages: data.total_pages,
+            endpoint: endpoint,
+            fallback: 'movie'
+        });
         hideLoading();
     } catch (error) {
         console.error('Genre filter error:', error);
@@ -616,7 +629,12 @@ async function handleCategoryClick(category) {
         const data = await fetchFromTMDB(endpoint);
         const fallback = category === 'movies' ? 'movie' : (category === 'trending' ? undefined : 'tv');
         const items = withPosters(fallback ? tagMedia(data.results, fallback) : data.results);
-        renderBrowseGrid(items, SECTION_TITLES[category] || 'Browse');
+        renderBrowseGrid(items, SECTION_TITLES[category] || 'Browse', {
+            page: data.page,
+            totalPages: data.total_pages,
+            endpoint: endpoint,
+            fallback: fallback
+        });
         hideLoading();
     } catch (error) {
         console.error('Category filter error:', error);
@@ -639,11 +657,15 @@ async function handlePlatformFilter(button) {
     button.classList.add('active');
     showLoading();
     try {
-        const data = await fetchFromTMDB(
-            `/discover/movie?with_watch_providers=${providerId}&watch_region=${state.watchRegion}&watch_monetization_types=flatrate&sort_by=popularity.desc&language=en-US`
-        );
+        const endpoint = `/discover/movie?with_watch_providers=${providerId}&watch_region=${state.watchRegion}&watch_monetization_types=flatrate&sort_by=popularity.desc&language=en-US`;
+        const data = await fetchFromTMDB(endpoint);
         const movies = withPosters(tagMedia(data.results, 'movie'));
-        renderBrowseGrid(movies, `On ${label} · ${state.watchRegion}`);
+        renderBrowseGrid(movies, `On ${label} · ${state.watchRegion}`, {
+            page: data.page,
+            totalPages: data.total_pages,
+            endpoint: endpoint,
+            fallback: 'movie'
+        });
         hideLoading();
     } catch (error) {
         console.error('Platform filter error:', error);
@@ -652,9 +674,55 @@ async function handlePlatformFilter(button) {
     }
 }
 
-function showSectionGrid(sectionKey) {
-    const items = state.sections[sectionKey] || [];
-    renderBrowseGrid(items, SECTION_TITLES[sectionKey] || 'Browse');
+async function showSectionGrid(sectionKey) {
+    showLoading();
+    try {
+        const endpoints = {
+            nowPlaying: '/movie/now_playing?language=en-US',
+            topMovies: '/trending/movie/week',
+            topSeries: '/trending/tv/week',
+            action: '/discover/movie?with_genres=28&language=en-US&sort_by=popularity.desc',
+            comedy: '/discover/movie?with_genres=35&language=en-US&sort_by=popularity.desc',
+            trending: '/trending/all/week',
+            movies: '/discover/movie?language=en-US&sort_by=popularity.desc',
+            tv: '/discover/tv?language=en-US&sort_by=popularity.desc',
+            anime: '/discover/tv?with_genres=16&with_origin_country=JP&language=en-US&sort_by=popularity.desc'
+        };
+        const fallbacks = {
+            nowPlaying: 'movie',
+            topMovies: 'movie',
+            topSeries: 'tv',
+            action: 'movie',
+            comedy: 'movie',
+            trending: undefined,
+            movies: 'movie',
+            tv: 'tv',
+            anime: 'tv'
+        };
+
+        const endpoint = endpoints[sectionKey];
+        if (!endpoint) {
+            const items = state.sections[sectionKey] || [];
+            renderBrowseGrid(items, SECTION_TITLES[sectionKey] || 'Browse');
+            hideLoading();
+            return;
+        }
+
+        const data = await fetchFromTMDB(endpoint);
+        const fallback = fallbacks[sectionKey];
+        const items = withPosters(fallback ? tagMedia(data.results, fallback) : data.results);
+        renderBrowseGrid(items, SECTION_TITLES[sectionKey] || 'Browse', {
+            page: data.page,
+            totalPages: data.total_pages,
+            endpoint: endpoint,
+            fallback: fallback
+        });
+        hideLoading();
+    } catch (error) {
+        console.error('Error loading section grid:', error);
+        hideLoading();
+        showError('Failed to load this section.');
+    }
 }
 
 function updateHeroBanner(item) {
@@ -868,7 +936,63 @@ function renderCarousel(container, items, options = {}) {
     });
 }
 
-function renderBrowseGrid(items, title) {
+function toggleScrollLoader(show) {
+    let loader = document.getElementById('scrollLoader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'scrollLoader';
+        loader.className = 'scroll-loader hidden';
+        loader.innerHTML = '<div class="spinner"></div><span>Loading more content…</span>';
+        elements.searchResultsSection.appendChild(loader);
+    }
+    loader.classList.toggle('hidden', !show);
+}
+
+async function loadMoreContent() {
+    if (!state.pagination || !state.pagination.hasMore || state.pagination.loadingMore) return;
+
+    state.pagination.loadingMore = true;
+    toggleScrollLoader(true);
+
+    const { currentPage, currentEndpoint, currentFallback } = state.pagination;
+    const nextPage = currentPage + 1;
+    const separator = currentEndpoint.includes('?') ? '&' : '?';
+    const nextPageEndpoint = `${currentEndpoint}${separator}page=${nextPage}`;
+
+    try {
+        const data = await fetchFromTMDB(nextPageEndpoint);
+        
+        if (data && data.results && data.results.length) {
+            const items = withPosters(currentFallback ? tagMedia(data.results, currentFallback) : data.results);
+            
+            items.forEach((item) => {
+                elements.searchResults.appendChild(createMovieCard(item));
+            });
+
+            state.pagination.currentPage = nextPage;
+            state.pagination.totalPages = data.total_pages || state.pagination.totalPages;
+            state.pagination.hasMore = nextPage < state.pagination.totalPages;
+        } else {
+            state.pagination.hasMore = false;
+        }
+    } catch (error) {
+        console.error('Error loading more content:', error);
+    } finally {
+        state.pagination.loadingMore = false;
+        toggleScrollLoader(false);
+    }
+}
+
+function handleInfiniteScroll() {
+    if (!elements.searchResultsSection.classList.contains('hidden')) {
+        const threshold = 800; // Load 800px before reaching the bottom
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - threshold) {
+            loadMoreContent();
+        }
+    }
+}
+
+function renderBrowseGrid(items, title, paginationContext = null) {
     pauseHeroTrailer();
     elements.homeView.classList.add('hidden');
     elements.favoritesSection.classList.add('hidden');
@@ -886,6 +1010,20 @@ function renderBrowseGrid(items, title) {
     items.forEach((item) => {
         elements.searchResults.appendChild(createMovieCard(item));
     });
+
+    if (paginationContext) {
+        state.pagination = {
+            currentPage: paginationContext.page || 1,
+            totalPages: paginationContext.totalPages || 1,
+            loadingMore: false,
+            hasMore: (paginationContext.page || 1) < (paginationContext.totalPages || 1),
+            currentEndpoint: paginationContext.endpoint,
+            currentFallback: paginationContext.fallback
+        };
+    } else {
+        state.pagination = null;
+    }
+    toggleScrollLoader(false);
 }
 
 async function showPlayerView(item) {
