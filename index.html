@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
     <div id="apiKeyAlert" class="api-alert hidden">
@@ -207,9 +207,57 @@
                 <div id="favoritesGrid" class="movie-grid"></div>
             </section>
 
-            <section id="sportsSection" class="grid-section hidden">
-                <h2 class="section-title">Live Football Matches</h2>
-                <div id="sportsGrid" class="match-grid"></div>
+            <section id="sportsSection" class="sports-view hidden">
+                <!-- Featured Sports Hero Banner -->
+                <div id="sportsHero" class="sports-hero hidden">
+                    <div id="sportsHeroBackdrop" class="sports-hero-backdrop"></div>
+                    <div class="sports-hero-overlay"></div>
+                    <div class="sports-hero-content">
+                        <div class="sports-hero-badge-row">
+                            <span id="sportsHeroLiveTag" class="match-live-pulse-badge">🔴 LIVE MATCH</span>
+                            <span id="sportsHeroLeague" class="sports-hero-league">Live Stream</span>
+                        </div>
+                        <div class="sports-hero-matchup">
+                            <div class="sports-hero-team home">
+                                <div class="sports-badge-wrapper">
+                                    <img id="sportsHeroHomeBadge" class="hero-team-badge" src="" alt="Home" />
+                                </div>
+                                <span id="sportsHeroHomeName" class="hero-team-name">Home Team</span>
+                            </div>
+                            <div class="sports-hero-vs-wrap">
+                                <div class="hero-vs-badge">VS</div>
+                                <span id="sportsHeroTime" class="hero-vs-time">Live Now</span>
+                            </div>
+                            <div class="sports-hero-team away">
+                                <div class="sports-badge-wrapper">
+                                    <img id="sportsHeroAwayBadge" class="hero-team-badge" src="" alt="Away" />
+                                </div>
+                                <span id="sportsHeroAwayName" class="hero-team-name">Away Team</span>
+                            </div>
+                        </div>
+                        <div class="sports-hero-actions">
+                            <button id="sportsHeroWatchBtn" class="sports-hero-btn" type="button">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Watch Live Stream</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sports Category Sub-navigation Pills -->
+                <div class="sports-subnav-container">
+                    <div class="sports-subnav-scroll" id="sportsCategoryNav">
+                        <button class="sports-pill active" type="button" data-sport="football">⚽ Football</button>
+                        <button class="sports-pill" type="button" data-sport="basketball">🏀 Basketball</button>
+                        <button class="sports-pill" type="button" data-sport="baseball">⚾ Baseball</button>
+                        <button class="sports-pill" type="button" data-sport="american-football">🏈 NFL / Football</button>
+                        <button class="sports-pill" type="button" data-sport="cricket">🏏 Cricket</button>
+                        <button class="sports-pill" type="button" data-sport="rugby">🏉 Rugby</button>
+                    </div>
+                </div>
+
+                <!-- Sports Content Grid -->
+                <div id="sportsGrid" class="sports-container"></div>
             </section>
 
         <div id="playerView" class="player-view hidden">

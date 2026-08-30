@@ -50,7 +50,9 @@ const state = {
     tvEpisode: 1,
     tvSeasons: [],
     sportsSources: [],
-    sportsSourceIndex: 0
+    sportsSourceIndex: 0,
+    selectedSport: 'football',
+    featuredSportsMatch: null
 };
 
 const SPORTSRC_API = 'https://api.sportsrc.org';
@@ -140,6 +142,17 @@ const elements = {
     favoritesGrid: document.getElementById('favoritesGrid'),
     sportsSection: document.getElementById('sportsSection'),
     sportsGrid: document.getElementById('sportsGrid'),
+    sportsHero: document.getElementById('sportsHero'),
+    sportsHeroBackdrop: document.getElementById('sportsHeroBackdrop'),
+    sportsHeroLiveTag: document.getElementById('sportsHeroLiveTag'),
+    sportsHeroLeague: document.getElementById('sportsHeroLeague'),
+    sportsHeroHomeBadge: document.getElementById('sportsHeroHomeBadge'),
+    sportsHeroHomeName: document.getElementById('sportsHeroHomeName'),
+    sportsHeroAwayBadge: document.getElementById('sportsHeroAwayBadge'),
+    sportsHeroAwayName: document.getElementById('sportsHeroAwayName'),
+    sportsHeroTime: document.getElementById('sportsHeroTime'),
+    sportsHeroWatchBtn: document.getElementById('sportsHeroWatchBtn'),
+    sportsCategoryNav: document.getElementById('sportsCategoryNav'),
     backToHomeBtn: document.getElementById('backToHomeBtn'),
     videoContainer: document.getElementById('videoContainer'),
     loadingSpinner: document.getElementById('loadingSpinner'),
@@ -388,6 +401,28 @@ function setupEventListeners() {
         state.tvEpisode = Number(elements.episodeSelect.value) || 1;
         loadVideoEmbed(state.activeMovie, state.videoProviderIndex);
     });
+
+    // Sports Category Sub-nav Listener
+    if (elements.sportsCategoryNav) {
+        elements.sportsCategoryNav.addEventListener('click', (e) => {
+            const pill = e.target.closest('.sports-pill');
+            if (!pill) return;
+            document.querySelectorAll('.sports-pill').forEach(btn => btn.classList.remove('active'));
+            pill.classList.add('active');
+            const sport = pill.getAttribute('data-sport') || 'football';
+            state.selectedSport = sport;
+            loadSportsMatches(sport);
+        });
+    }
+
+    // Sports Hero Watch Button Listener
+    if (elements.sportsHeroWatchBtn) {
+        elements.sportsHeroWatchBtn.addEventListener('click', () => {
+            if (state.featuredSportsMatch) {
+                openSportsMatch(state.featuredSportsMatch);
+            }
+        });
+    }
 }
 
 function handleNavbarScroll() {
@@ -566,14 +601,11 @@ async function handleCategoryClick(category) {
     }
 
     if (category === 'sports') {
-        showLoading();
         try {
-            await loadFootballMatches();
-            hideLoading();
+            await loadSportsMatches(state.selectedSport || 'football');
         } catch (error) {
             console.error('Sports loading error:', error);
-            hideLoading();
-            showError('Failed to load football matches.');
+            showError('Failed to load sports matches.');
         }
         return;
     }
@@ -1108,14 +1140,16 @@ function isMatchLive(match) {
     return now >= start - 20 * 60 * 1000 && now <= start + 3 * 60 * 60 * 1000;
 }
 
-function matchTeamNames(match) {
+function matchTeamDetails(match) {
     const homeTeam = match.teams?.home?.name || match.homeTeam || match.home || match.title?.split(' vs')[0] || 'Home Team';
     const awayTeam = match.teams?.away?.name || match.awayTeam || match.away || match.title?.split(/vs\.?\s/i)[1] || 'Away Team';
-    return { homeTeam, awayTeam };
+    const homeBadge = match.teams?.home?.badge || null;
+    const awayBadge = match.teams?.away?.badge || null;
+    return { homeTeam, awayTeam, homeBadge, awayBadge };
 }
 
-async function fetchSportsDetail(matchId) {
-    const response = await fetch(`${SPORTSRC_API}/?data=detail&category=football&id=${encodeURIComponent(matchId)}`);
+async function fetchSportsDetail(matchId, category = state.selectedSport || 'football') {
+    const response = await fetch(`${SPORTSRC_API}/?data=detail&category=${encodeURIComponent(category)}&id=${encodeURIComponent(matchId)}`);
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
     }
@@ -1123,25 +1157,42 @@ async function fetchSportsDetail(matchId) {
     return payload?.data || payload;
 }
 
-async function loadFootballMatches() {
+async function loadSportsMatches(category = state.selectedSport || 'football') {
+    state.selectedSport = category;
+    showLoading();
     try {
-        const response = await fetch(`${SPORTSRC_API}/?data=matches&category=football`);
+        const response = await fetch(`${SPORTSRC_API}/?data=matches&category=${encodeURIComponent(category)}`);
         const data = await response.json();
         const matches = data?.data || data;
 
         if (Array.isArray(matches) && matches.length) {
             const liveMatches = matches.filter((match) => isMatchLive(match));
             const upcomingMatches = matches.filter((match) => !isMatchLive(match));
-            renderFootballMatches(liveMatches, upcomingMatches);
+            
+            // Pick featured match (first live match, or first popular, or first available)
+            const featured = liveMatches[0] || matches.find(m => m.popular) || matches[0];
+            state.featuredSportsMatch = featured;
+            renderSportsHero(featured);
+            renderSportsMatches(liveMatches, upcomingMatches, category);
             showSportsView();
         } else {
-            elements.sportsGrid.innerHTML = '<p class="empty-state">No matches available at the moment</p>';
+            if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+            elements.sportsGrid.innerHTML = `
+                <div class="empty-state" style="text-align:center; padding:3.5rem 1rem;">
+                    <div style="font-size:3rem; margin-bottom:1rem;">🏟️</div>
+                    <p style="font-size:1.15rem; color:var(--text); font-weight:700;">No ${category.replace('-', ' ')} matches scheduled right now</p>
+                    <p style="color:var(--text-secondary); margin-top:0.5rem; font-size:0.9rem;">Check back closer to game time or choose another sport above.</p>
+                </div>
+            `;
             showSportsView();
         }
     } catch (error) {
-        console.error('Error loading football matches:', error);
-        elements.sportsGrid.innerHTML = `<p class="error-state">Error loading matches: ${error.message}</p>`;
+        console.error('Error loading sports matches:', error);
+        if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+        elements.sportsGrid.innerHTML = `<p class="error-state" style="text-align:center; padding:2rem;">Error loading matches: ${error.message}</p>`;
         showSportsView();
+    } finally {
+        hideLoading();
     }
 }
 
@@ -1156,65 +1207,162 @@ function showSportsView() {
     window.scrollTo(0, 0);
 }
 
-function renderFootballMatches(liveMatches, upcomingMatches) {
+function renderSportsHero(match) {
+    if (!elements.sportsHero || !match) {
+        if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+        return;
+    }
+
+    const { homeTeam, awayTeam, homeBadge, awayBadge } = matchTeamDetails(match);
+    const league = match.league || match.competition || (match.category ? match.category.toUpperCase() : 'Live Sports');
+    const live = isMatchLive(match);
+    const matchDate = parseMatchDate(match.date);
+    const time = matchDate
+        ? matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : (match.time || 'Live');
+
+    if (elements.sportsHeroBackdrop) {
+        const posterUrl = match.poster || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1400&q=80';
+        elements.sportsHeroBackdrop.style.backgroundImage = `url('${posterUrl}')`;
+    }
+
+    if (elements.sportsHeroLiveTag) {
+        elements.sportsHeroLiveTag.textContent = live ? '🔴 LIVE NOW' : '⏱ UPCOMING MATCH';
+        elements.sportsHeroLiveTag.className = live ? 'match-live-pulse-badge' : 'sports-hero-league';
+    }
+
+    if (elements.sportsHeroLeague) elements.sportsHeroLeague.textContent = league;
+    if (elements.sportsHeroHomeName) elements.sportsHeroHomeName.textContent = homeTeam;
+    if (elements.sportsHeroAwayName) elements.sportsHeroAwayName.textContent = awayTeam;
+
+    if (elements.sportsHeroHomeBadge) {
+        if (homeBadge) {
+            elements.sportsHeroHomeBadge.src = homeBadge;
+            elements.sportsHeroHomeBadge.style.display = 'block';
+        } else {
+            elements.sportsHeroHomeBadge.style.display = 'none';
+        }
+    }
+
+    if (elements.sportsHeroAwayBadge) {
+        if (awayBadge) {
+            elements.sportsHeroAwayBadge.src = awayBadge;
+            elements.sportsHeroAwayBadge.style.display = 'block';
+        } else {
+            elements.sportsHeroAwayBadge.style.display = 'none';
+        }
+    }
+
+    if (elements.sportsHeroTime) {
+        elements.sportsHeroTime.textContent = live ? (match.score ? `${match.score.home} - ${match.score.away}` : 'In Progress') : `${time}`;
+    }
+
+    elements.sportsHero.classList.remove('hidden');
+}
+
+function renderSportsMatches(liveMatches, upcomingMatches, category) {
     elements.sportsGrid.innerHTML = '';
 
     if ((!liveMatches || liveMatches.length === 0) && (!upcomingMatches || upcomingMatches.length === 0)) {
-        elements.sportsGrid.innerHTML = '<p class="empty-state">No matches available at the moment</p>';
+        elements.sportsGrid.innerHTML = `
+            <div class="empty-state" style="text-align:center; padding:3rem 1rem;">
+                <p style="font-size:1.1rem; color:var(--text); font-weight:700;">No ${category} matches available right now</p>
+            </div>
+        `;
         return;
     }
 
     if (liveMatches && liveMatches.length > 0) {
         const liveSection = document.createElement('div');
-        liveSection.className = 'matches-section';
-        liveSection.innerHTML = '<h3 class="matches-section-title">Live Matches</h3>';
-        liveMatches.forEach((match) => liveSection.appendChild(createMatchCard(match)));
+        liveSection.className = 'sports-group-section';
+        liveSection.innerHTML = `
+            <div class="sports-group-header">
+                <h3 class="sports-group-title">
+                    <span>🔴 Live Now</span>
+                    <span class="sports-group-count">${liveMatches.length}</span>
+                </h3>
+            </div>
+            <div class="sports-match-grid"></div>
+        `;
+        const grid = liveSection.querySelector('.sports-match-grid');
+        liveMatches.forEach((match) => grid.appendChild(createMatchCard(match)));
         elements.sportsGrid.appendChild(liveSection);
     }
 
     if (upcomingMatches && upcomingMatches.length > 0) {
         const upcomingSection = document.createElement('div');
-        upcomingSection.className = 'matches-section';
-        upcomingSection.innerHTML = '<h3 class="matches-section-title">Upcoming Fixtures</h3>';
-        upcomingMatches.forEach((match) => upcomingSection.appendChild(createMatchCard(match)));
+        upcomingSection.className = 'sports-group-section';
+        upcomingSection.innerHTML = `
+            <div class="sports-group-header">
+                <h3 class="sports-group-title">
+                    <span>📅 Upcoming Fixtures & Streams</span>
+                    <span class="sports-group-count">${upcomingMatches.length}</span>
+                </h3>
+            </div>
+            <div class="sports-match-grid"></div>
+        `;
+        const grid = upcomingSection.querySelector('.sports-match-grid');
+        upcomingMatches.forEach((match) => grid.appendChild(createMatchCard(match)));
         elements.sportsGrid.appendChild(upcomingSection);
     }
 }
 
 function createMatchCard(match) {
     const card = document.createElement('div');
-    card.className = 'match-card';
+    card.className = 'match-card-modern';
 
-    const { homeTeam, awayTeam } = matchTeamNames(match);
-    const league = match.league || match.competition || 'Football';
+    const { homeTeam, awayTeam, homeBadge, awayBadge } = matchTeamDetails(match);
+    const league = match.league || match.competition || (match.category ? match.category.toUpperCase() : 'Sports');
     const live = isMatchLive(match);
     const matchDate = parseMatchDate(match.date);
     const time = matchDate
         ? matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : (match.time || 'TBD');
-    const score = match.score ? `${match.score.home} - ${match.score.away}` : 'vs';
+    const score = match.score ? `${match.score.home} - ${match.score.away}` : 'VS';
+    const posterUrl = match.poster || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80';
 
     card.innerHTML = `
-        <div class="match-header">
-            <span class="match-league">${league}</span>
-            ${live ? '<span class="match-live-badge">LIVE</span>' : ''}
+        <div class="match-card-poster" style="background-image: url('${posterUrl}');"></div>
+        <div class="match-card-overlay"></div>
+        <div class="match-card-body">
+            <div class="match-card-top">
+                <span class="match-card-league">${league}</span>
+                <div class="match-card-badge-wrap">
+                    ${match.popular ? '<span class="match-pill-popular">🔥 Hot</span>' : ''}
+                    ${live ? '<span class="match-pill-live">🔴 LIVE</span>' : `<span class="match-pill-time">⏱ ${time}</span>`}
+                </div>
+            </div>
+            
+            <div class="match-card-center">
+                <div class="match-card-team home">
+                    <div class="match-team-icon-wrap">
+                        ${homeBadge ? `<img class="match-team-icon" src="${homeBadge}" alt="${homeTeam}" onerror="this.style.display='none'" />` : '<span style="font-size:1.1rem">🛡️</span>'}
+                    </div>
+                    <span class="match-team-name-text">${homeTeam}</span>
+                </div>
+                
+                <div class="match-card-vs-box">
+                    <span class="match-vs-tag">${live ? score : 'VS'}</span>
+                </div>
+                
+                <div class="match-card-team away">
+                    <div class="match-team-icon-wrap">
+                        ${awayBadge ? `<img class="match-team-icon" src="${awayBadge}" alt="${awayTeam}" onerror="this.style.display='none'" />` : '<span style="font-size:1.1rem">🛡️</span>'}
+                    </div>
+                    <span class="match-team-name-text">${awayTeam}</span>
+                </div>
+            </div>
+
+            <div class="match-card-action">
+                <button class="match-watch-btn-modern" type="button">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <span>${live ? 'Watch Live Stream' : 'Watch Stream'}</span>
+                </button>
+            </div>
         </div>
-        <div class="match-content">
-            <div class="match-team">
-                <span class="team-name">${homeTeam}</span>
-            </div>
-            <div class="match-info">
-                <span class="match-score">${score}</span>
-                <span class="match-time">${time}</span>
-            </div>
-            <div class="match-team">
-                <span class="team-name">${awayTeam}</span>
-            </div>
-        </div>
-        <button class="watch-match-btn" type="button">Watch Stream</button>
     `;
 
-    card.querySelector('.watch-match-btn').addEventListener('click', () => {
+    card.addEventListener('click', () => {
         openSportsMatch(match);
     });
 
@@ -1227,8 +1375,8 @@ async function openSportsMatch(match) {
         return;
     }
 
-    const { homeTeam, awayTeam } = matchTeamNames(match);
-    const league = match.league || match.competition || 'Football';
+    const { homeTeam, awayTeam } = matchTeamDetails(match);
+    const league = match.league || match.competition || 'Sports';
 
     state.currentView = 'sports-player';
     state.sportsSources = [];
@@ -1251,7 +1399,7 @@ async function openSportsMatch(match) {
     window.scrollTo(0, 0);
 
     try {
-        const detail = await fetchSportsDetail(match.id);
+        const detail = await fetchSportsDetail(match.id, match.category || state.selectedSport || 'football');
         const sources = (detail?.sources || []).filter((source) => source.embedUrl);
         if (!sources.length) {
             elements.loadingSpinner.classList.add('hidden');
