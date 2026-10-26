@@ -1368,6 +1368,7 @@ function parseMatchDate(value) {
 
 function isMatchLive(match) {
     if (match.status === 'live' || match.isLive) return true;
+    if (match.id?.includes('ballon') || detectMatchLeagueKey(match) === 'ballondor') return true;
     const date = parseMatchDate(match.date);
     if (!date) return false;
     const start = date.getTime();
@@ -1376,19 +1377,19 @@ function isMatchLive(match) {
 }
 
 const BALLON_DOR_EVENT = {
-    id: 'ballon-dor-gala',
+    id: 'ppv-2026-ballon-d-or-ceremony',
     isSpecialEvent: true,
-    title: "Ballon d'Or 2024 Gala Ceremony",
+    title: "2026 Ballon d'Or Ceremony",
     category: 'football',
     league: "Ballon d'Or · France Football",
     competition: "Ballon d'Or",
     popular: true,
     isLive: true,
-    poster: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1400&q=80',
-    date: Date.now(),
+    poster: 'https://sportsrc.org/img/sport/proxy/GwZg7AZpYEZgHCAjAJgCzuAQ1sFKBWSYAU2DFLABM8E9g1gDCFJMd46Tp51jwywYAE5Mw0sEQkQEEDBEgUIMogDGIKcFlYFELSBBbSiucpnAasqiB01pMFOT0ChIptnphCwJLlWOhMG5OPXEyRwJJciCjMgggA.webp',
+    date: 1793044800000,
     teams: {
         home: {
-            name: "Ballon d'Or Gala",
+            name: "Ballon d'Or 2026 Gala",
             badge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="22" r="15" fill="%23d4af37"/><circle cx="20" cy="18" r="14" fill="%23f59e0b" opacity="0.6"/><path d="M24 7 C 20 14, 28 20, 24 37" stroke="%2392400e" stroke-width="1.5" fill="none"/><path d="M11 22 C 18 18, 30 26, 37 22" stroke="%2392400e" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="40" rx="9" ry="3.5" fill="%2378350f"/><rect x="21" y="35" width="6" height="5" fill="%2392400e"/></svg>'
         },
         away: {
@@ -1399,22 +1400,28 @@ const BALLON_DOR_EVENT = {
     overview: "The 68th annual Ballon d'Or ceremony presented by France Football and UEFA live from the Théâtre du Châtelet in Paris, honoring the world's best football players.",
     sources: [
         {
-            name: "L'Équipe Official Gala Stream (1080p)",
+            name: "CBS Sports Golazo (Live HD)",
+            language: "English - CBS Sports Golazo",
+            hd: true,
+            embedUrl: "https://embed.streamapi.cc/sport/9sALyszXs8Bi3h8Qo_tTzu49Rcui4OdXjkSdmma7iw8sjHDRg46kW106Nqfk3fHgIgltpyOkz3s5eq9RnBuDwnkmTNysK_jegizpJdkqNLiOqGA-iZrsddIiYXLRiXE0N4LA9Zj9VgEYPXXAZtkF2A/"
+        },
+        {
+            name: "CBS Sports Golazo (Server 2)",
+            language: "English - CBS Sports Golazo",
+            hd: false,
+            embedUrl: "https://embed.streamapi.cc/sport/g14HjYnMa3PMcv7FBwnVc4KTQ8vaBO3Mm7rbUOc0CfVq8w2Fut5TOsAYV87buyQIGimMEEgsOT8IhnaHLNUBM0QsmcjXT8ofHTtQ07NL82oaEYloYniW9Q0sOyzp6hfkYD2fsY9ZW6jDIWZ3KsqW5w/"
+        },
+        {
+            name: "Main Broadcast (Server 3)",
+            language: "Main Broadcast",
+            hd: true,
+            embedUrl: "https://embed.streamapi.cc/sport/emXx1TsNKijSzV7HTybZkGyUcVLSc9un5wtjgt5wRHSXwKbLrGVjyXwOLzitZNQO9HPL5bS-1Ottf0j83MAPnuRXKwbMMfqI8Mw05D48Hq71iXJgkuSNAQLnrHMovCBmvaQmzEkei8KI5Orhi9b1Avdpz2Jq76vpLc91JAoed0k/"
+        },
+        {
+            name: "L'Équipe Official Stream",
             language: "Official Stream",
             hd: true,
             embedUrl: "https://www.youtube-nocookie.com/embed/5aQ2hNglq14?autoplay=1"
-        },
-        {
-            name: "UEFA Live Gala Stream",
-            language: "English",
-            hd: true,
-            embedUrl: "https://www.youtube-nocookie.com/embed/wzXQo6uP4eM?autoplay=1"
-        },
-        {
-            name: "International Red Carpet & Ceremony Feed",
-            language: "International",
-            hd: true,
-            embedUrl: "https://www.youtube-nocookie.com/embed/Y7dpJ0oseIA?autoplay=1"
         }
     ]
 };
@@ -1430,7 +1437,7 @@ const TOP_LEAGUE_KEYWORDS = {
 };
 
 function detectMatchLeagueKey(match) {
-    if (match.id === 'ballon-dor-gala' || match.isSpecialEvent) return 'ballondor';
+    if (match.id?.includes('ballon') || match.isSpecialEvent) return 'ballondor';
     const text = (match.title || '') + ' ' + (match.league || '') + ' ' + (match.competition || '');
     for (const [key, keywords] of Object.entries(TOP_LEAGUE_KEYWORDS)) {
         if (keywords.some(kw => text.toLowerCase().includes(kw.toLowerCase()))) {
@@ -1441,7 +1448,7 @@ function detectMatchLeagueKey(match) {
 }
 
 function formatMatchLeague(match) {
-    if (match.id === 'ballon-dor-gala' || match.isSpecialEvent) return "Ballon d'Or · France Football";
+    if (match.id?.includes('ballon') || match.isSpecialEvent) return "Ballon d'Or · France Football";
     if (match.league) return match.league;
     if (match.competition) return match.competition;
     
@@ -1459,9 +1466,11 @@ function formatMatchLeague(match) {
 
 function sortMatchesByPopularity(matches) {
     return matches.slice().sort((a, b) => {
-        // Pinned special events (like Ballon d'Or) always rank top
-        if ((a.isSpecialEvent || a.id === 'ballon-dor-gala') && !(b.isSpecialEvent || b.id === 'ballon-dor-gala')) return -1;
-        if (!(a.isSpecialEvent || a.id === 'ballon-dor-gala') && (b.isSpecialEvent || b.id === 'ballon-dor-gala')) return 1;
+        // Pinned special events (like Ballon d'Or) always rank at the absolute top
+        const isBallonA = a.isSpecialEvent || a.id?.includes('ballon') || detectMatchLeagueKey(a) === 'ballondor';
+        const isBallonB = b.isSpecialEvent || b.id?.includes('ballon') || detectMatchLeagueKey(b) === 'ballondor';
+        if (isBallonA && !isBallonB) return -1;
+        if (!isBallonA && isBallonB) return 1;
 
         const liveA = isMatchLive(a) ? 1 : 0;
         const liveB = isMatchLive(b) ? 1 : 0;
@@ -1546,10 +1555,16 @@ function applySportsLeagueFilter() {
     const liveMatches = filtered.filter((match) => isMatchLive(match));
     const upcomingMatches = filtered.filter((match) => !isMatchLive(match));
 
-    // Pick top featured match (prioritize Ballon d'Or when selected)
-    const featured = state.selectedLeague === 'ballondor'
-        ? (filtered[0] || BALLON_DOR_EVENT)
-        : (liveMatches[0] || filtered.find(m => m.popular) || filtered[0] || sorted[0]);
+    // Find the Ballon d'Or event if present
+    const ballonEvent = sorted.find(m => m.id?.includes('ballon') || detectMatchLeagueKey(m) === 'ballondor');
+    let featured;
+    if (state.selectedLeague === 'ballondor') {
+        featured = ballonEvent || filtered[0] || BALLON_DOR_EVENT;
+    } else if ((state.selectedLeague === 'all' || state.selectedLeague === 'popular') && state.selectedSport === 'football' && ballonEvent) {
+        featured = ballonEvent;
+    } else {
+        featured = liveMatches[0] || filtered.find(m => m.popular) || filtered[0] || sorted[0];
+    }
 
     state.featuredSportsMatch = featured;
     if (featured) {
@@ -1562,6 +1577,14 @@ function applySportsLeagueFilter() {
 }
 
 function matchTeamDetails(match) {
+    if (match.id?.includes('ballon') || detectMatchLeagueKey(match) === 'ballondor') {
+        return {
+            homeTeam: "Ballon d'Or 2026 Gala",
+            awayTeam: "Théâtre du Châtelet, Paris",
+            homeBadge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="22" r="15" fill="%23d4af37"/><circle cx="20" cy="18" r="14" fill="%23f59e0b" opacity="0.6"/><path d="M24 7 C 20 14, 28 20, 24 37" stroke="%2392400e" stroke-width="1.5" fill="none"/><path d="M11 22 C 18 18, 30 26, 37 22" stroke="%2392400e" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="40" rx="9" ry="3.5" fill="%2378350f"/><rect x="21" y="35" width="6" height="5" fill="%2392400e"/></svg>',
+            awayBadge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="%230f172a"/><path d="M24 10 L27 18 L35 19 L29 25 L31 33 L24 29 L17 33 L19 25 L13 19 L21 18 Z" fill="%23d4af37"/></svg>'
+        };
+    }
     const homeTeam = match.teams?.home?.name || match.homeTeam || match.home || match.title?.split(' vs')[0] || 'Home Team';
     const awayTeam = match.teams?.away?.name || match.awayTeam || match.away || match.title?.split(/vs\.?\s/i)[1] || 'Away Team';
     const homeBadge = match.teams?.home?.badge || null;
@@ -1589,10 +1612,22 @@ async function loadSportsMatches(category = state.selectedSport || 'football') {
 
         if (!Array.isArray(matches)) matches = [];
 
-        // If category is football, ensure BALLON_DOR_EVENT is included at the top
+        // If category is football, ensure BALLON_DOR_EVENT is included at the top and enhanced
         if (category === 'football') {
-            const hasBallon = matches.some(m => m.id === 'ballon-dor-gala' || detectMatchLeagueKey(m) === 'ballondor');
-            if (!hasBallon) {
+            const existingIndex = matches.findIndex(m => m.id?.includes('ballon') || detectMatchLeagueKey(m) === 'ballondor');
+            if (existingIndex > -1) {
+                const apiMatch = matches[existingIndex];
+                matches[existingIndex] = {
+                    ...BALLON_DOR_EVENT,
+                    ...apiMatch,
+                    id: apiMatch.id || 'ppv-2026-ballon-d-or-ceremony',
+                    title: "2026 Ballon d'Or Ceremony",
+                    isSpecialEvent: true,
+                    isLive: true,
+                    popular: true,
+                    teams: BALLON_DOR_EVENT.teams
+                };
+            } else {
                 matches = [BALLON_DOR_EVENT, ...matches];
             }
         }
@@ -1817,6 +1852,7 @@ async function openSportsMatch(match) {
 
     const { homeTeam, awayTeam } = matchTeamDetails(match);
     const league = match.league || match.competition || 'Sports';
+    const isBallon = match.id?.includes('ballon') || detectMatchLeagueKey(match) === 'ballondor';
 
     state.currentView = 'sports-player';
     state.sportsSources = [];
@@ -1830,29 +1866,47 @@ async function openSportsMatch(match) {
     elements.playerView.classList.remove('hidden');
     elements.playerView.classList.add('fade-in');
 
-    elements.playerTitle.textContent = match.title || `${homeTeam} vs ${awayTeam}`;
-    elements.playerReleaseDate.textContent = league;
+    elements.playerTitle.textContent = isBallon ? "2026 Ballon d'Or Ceremony (Live)" : (match.title || `${homeTeam} vs ${awayTeam}`);
+    elements.playerReleaseDate.textContent = isBallon ? "France Football · UEFA Gala" : league;
     elements.playerOverview.textContent = match.overview || (isMatchLive(match) ? 'Live match' : 'Loading stream sources…');
     elements.videoContainer.innerHTML = '';
     elements.loadingSpinner.classList.remove('hidden');
     if (elements.selectedSourceName) elements.selectedSourceName.textContent = 'Loading…';
     window.scrollTo(0, 0);
 
-    // If sources are already pre-configured (e.g. Ballon d'Or or custom special event)
-    if (Array.isArray(match.sources) && match.sources.length > 0) {
-        state.sportsSources = match.sources;
-        loadSportsEmbed(0);
-        return;
-    }
-
     try {
         const detail = await fetchSportsDetail(match.id, match.category || state.selectedSport || 'football');
-        const sources = (detail?.sources || []).filter((source) => source.embedUrl);
+        let sources = (detail?.sources || []).filter((source) => source.embedUrl);
+
+        if (isBallon) {
+            if (sources.length > 0) {
+                sources.forEach((s, idx) => {
+                    if (s.language?.includes('CBS')) {
+                        s.name = `CBS Sports Golazo (${s.hd ? 'HD' : 'SD'})`;
+                    } else if (!s.name) {
+                        s.name = s.language || `Ceremony Server ${idx + 1}`;
+                    }
+                });
+                sources.push({
+                    name: "L'Équipe Official Stream",
+                    language: "Official Stream",
+                    hd: true,
+                    embedUrl: "https://www.youtube-nocookie.com/embed/5aQ2hNglq14?autoplay=1"
+                });
+            } else {
+                sources = BALLON_DOR_EVENT.sources;
+            }
+        }
+
         if (!sources.length) {
-            elements.loadingSpinner.classList.add('hidden');
-            elements.videoContainer.innerHTML = '<p class="error-state">Stream not available for this match</p>';
-            showError('Stream not available for this match');
-            return;
+            if (isBallon && BALLON_DOR_EVENT.sources) {
+                sources = BALLON_DOR_EVENT.sources;
+            } else {
+                elements.loadingSpinner.classList.add('hidden');
+                elements.videoContainer.innerHTML = '<p class="error-state">Stream not available for this match</p>';
+                showError('Stream not available for this match');
+                return;
+            }
         }
 
         state.sportsSources = sources;
@@ -1862,6 +1916,11 @@ async function openSportsMatch(match) {
         loadSportsEmbed(0);
     } catch (error) {
         console.error('Error loading match stream:', error);
+        if (isBallon && Array.isArray(BALLON_DOR_EVENT.sources) && BALLON_DOR_EVENT.sources.length) {
+            state.sportsSources = BALLON_DOR_EVENT.sources;
+            loadSportsEmbed(0);
+            return;
+        }
         elements.loadingSpinner.classList.add('hidden');
         elements.videoContainer.innerHTML = '<p class="error-state">Failed to load stream</p>';
         showError('Failed to load stream for this match.');
@@ -1869,6 +1928,7 @@ async function openSportsMatch(match) {
 }
 
 function sportsSourceLabel(source, index) {
+    if (source.name) return source.name;
     const quality = source.hd ? 'HD' : 'SD';
     const language = source.language || `Source ${index + 1}`;
     return `${language} · ${quality}`;
