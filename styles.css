@@ -1,32 +1,32 @@
-/* ── Design tokens — LIGHT as default ── */
+/* ── Design tokens — LIGHT as default (MovieGather style) ── */
 :root {
-    --bg: #f4f4f7;
-    --bg-raised: #ffffff;
+    --bg: #eef2f5;
+    --bg-raised: rgba(238, 242, 245, 0.95);
     --bg-card: #ffffff;
-    --bg-glass: rgba(244, 244, 247, 0.9);
-    --surface: rgba(0, 0, 0, 0.04);
-    --surface-hover: rgba(0, 0, 0, 0.07);
-    --border: rgba(0, 0, 0, 0.08);
-    --text: #18181b;
-    --text-secondary: #52525b;
-    --text-muted: #a1a1aa;
+    --bg-glass: rgba(238, 242, 245, 0.9);
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --border: rgba(0, 0, 0, 0.06);
+    --text: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
     --accent: #dc2626;
     --accent-bright: #ef4444;
     --accent-glow: rgba(220, 38, 38, 0.2);
-    --play: #2563eb;
-    --play-bright: #3b82f6;
-    --play-glow: rgba(37, 99, 235, 0.35);
+    --play: #0f172a;
+    --play-bright: #1e293b;
+    --play-glow: rgba(15, 23, 42, 0.2);
     --gold: #f59e0b;
     --ring-green: #22c55e;
     --ring-orange: #f59e0b;
     --ring-red: #ef4444;
-    --radius: 14px;
-    --radius-sm: 10px;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.09);
-    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
     --font-display: 'Syne', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
-    --nav-h: 64px;
+    --nav-h: 68px;
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1556,6 +1556,39 @@ body.light .toast-error {
     font-weight: 700;
 }
 
+/* Ballon d'Or Special Pill */
+.league-pill.ballon-dor-pill {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(245, 158, 11, 0.25));
+    border: 1px solid rgba(212, 175, 55, 0.65);
+    color: #d4af37;
+    font-weight: 700;
+}
+
+.league-pill.ballon-dor-pill:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.35), rgba(245, 158, 11, 0.45));
+    border-color: #f59e0b;
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.45);
+}
+
+.league-pill.ballon-dor-pill.active {
+    background: linear-gradient(135deg, #d4af37, #f59e0b);
+    border-color: #d4af37;
+    color: #0f172a;
+    font-weight: 800;
+    box-shadow: 0 4px 18px rgba(212, 175, 55, 0.55);
+}
+
+.league-pill.ballon-dor-pill .pill-count {
+    background: rgba(15, 23, 42, 0.65);
+    color: #fbbf24;
+}
+
+.league-pill.ballon-dor-pill.active .pill-count {
+    background: #0f172a;
+    color: #ffffff;
+}
+
 /* Sports Content Container */
 .sports-container {
     display: flex;
@@ -1720,6 +1753,27 @@ body.light .toast-error {
     font-weight: 800;
     padding: 0.2rem 0.45rem;
     border-radius: 4px;
+}
+
+.match-pill-gala {
+    background: linear-gradient(135deg, #d4af37, #f59e0b);
+    color: #0f172a;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+}
+
+.match-card-modern.special-event-card {
+    border: 1.5px solid rgba(212, 175, 55, 0.45);
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.15);
+}
+
+.match-card-modern.special-event-card:hover {
+    border-color: #d4af37;
+    box-shadow: 0 12px 36px rgba(212, 175, 55, 0.35);
 }
 
 /* Center Match Teams */
@@ -2129,38 +2183,62 @@ body.light .scroll-loader .spinner {
    NEW UI — REFERENCE IMAGE REDESIGN
    ══════════════════════════════════════ */
 
-/* ── Navbar light overrides ── */
+/* ── Navbar light overrides — Seamless ── */
 .navbar {
-    background: var(--bg-raised);
-    border-bottom: 1px solid var(--border);
+    background: transparent;
+    border-bottom: none;
 }
 
 .navbar-scrolled {
-    background: var(--bg-glass) !important;
+    background: rgba(238, 242, 245, 0.95) !important;
     backdrop-filter: blur(20px);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 body.dark .navbar { background: transparent; }
 body.dark .navbar-scrolled { background: var(--bg-glass) !important; }
 
+/* Logo typography — Stacked bold caps like reference */
+.logo {
+    text-align: left;
+}
+
+.logo-text {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.22em;
+    color: #0f172a;
+    text-transform: uppercase;
+}
+
+.logo-text span {
+    color: #0f172a;
+    letter-spacing: 0.22em;
+}
+
 .cat-pill {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    border-bottom: 2px solid transparent;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #64748b;
+    border: none;
+    border-bottom: 2.5px solid transparent;
     border-radius: 0;
-    padding: 0.35rem 0.65rem;
+    padding: 0.4rem 0.85rem;
     transition: color 0.2s, border-color 0.2s;
 }
 
-.cat-pill:hover { color: var(--text); }
+.cat-pill:hover { color: #0f172a; background: transparent; }
 
 .cat-pill.active {
-    color: var(--text);
+    color: #0f172a;
     background: transparent;
-    border-color: var(--text);
-    font-weight: 700;
+    border-color: #0f172a;
+    font-weight: 800;
 }
 
 /* Keep sports pill its own shape */
@@ -2169,16 +2247,25 @@ body.dark .navbar-scrolled { background: var(--bg-glass) !important; }
     border-radius: 999px;
 }
 
+/* Search input oval pill */
+.search-wrap input {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: #0f172a;
+}
+
 /* Icon buttons — light theme */
 .icon-btn {
-    background: var(--surface);
-    border-color: var(--border);
-    color: var(--text-secondary);
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #475569;
 }
 
 /* ── 2-Column Hero Section ── */
 .home-hero-section {
-    padding: calc(var(--nav-h) + 1.5rem) 2rem 0;
+    padding: calc(var(--nav-h) + 0.75rem) 2rem 0;
     background: var(--bg);
 }
 
@@ -2186,20 +2273,20 @@ body.dark .navbar-scrolled { background: var(--bg-glass) !important; }
     max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 280px;
-    gap: 1.25rem;
+    grid-template-columns: 1fr 290px;
+    gap: 1.5rem;
     align-items: start;
 }
 
 /* ── Featured Movie Card (left) ── */
 .hero-featured-card {
     position: relative;
-    border-radius: 18px;
+    border-radius: 24px;
     overflow: hidden;
     aspect-ratio: 16/9;
-    background: #111;
+    background: #0f172a;
     cursor: pointer;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
 }
 
 .hero-card-poster {
@@ -2210,113 +2297,112 @@ body.dark .navbar-scrolled { background: var(--bg-glass) !important; }
     transition: transform 6s ease;
 }
 
-.hero-featured-card:hover .hero-card-poster { transform: scale(1.04); }
+.hero-featured-card:hover .hero-card-poster { transform: scale(1.03); }
 
 .hero-card-gradient {
     position: absolute;
     inset: 0;
     background: linear-gradient(
         to top,
-        rgba(0,0,0,0.88) 0%,
-        rgba(0,0,0,0.5) 40%,
-        rgba(0,0,0,0.1) 70%,
+        rgba(15, 23, 42, 0.92) 0%,
+        rgba(15, 23, 42, 0.55) 40%,
+        rgba(15, 23, 42, 0.15) 75%,
         transparent 100%
     );
 }
 
-/* Carousel dots */
+/* Carousel dots top-left */
 .hero-card-dots {
     position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 20px;
+    left: 24px;
     display: flex;
-    gap: 6px;
+    gap: 8px;
     z-index: 5;
 }
 
 .hero-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.5);
+    background: rgba(255, 255, 255, 0.45);
     cursor: pointer;
     transition: background 0.2s, transform 0.2s;
 }
 
 .hero-dot.active {
-    background: #fff;
-    transform: scale(1.2);
+    background: #ffffff;
+    transform: scale(1.3);
 }
 
-/* Centered play button */
+/* Play button on right side of hero card (MovieGather style) */
 .hero-card-play-btn {
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
+    right: 32px;
+    transform: translateY(-50%);
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(8px);
-    border: 2px solid rgba(255,255,255,0.55);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: #ffffff;
     display: grid;
     place-items: center;
     z-index: 5;
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
-.hero-card-play-btn svg { width: 26px; height: 26px; margin-left: 3px; }
+.hero-card-play-btn svg { width: 28px; height: 28px; margin-left: 3px; }
 
 .hero-card-play-btn:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 0 24px rgba(220,38,38,0.5);
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: 0 0 28px rgba(255, 255, 255, 0.4);
 }
 
-/* Bottom info */
+/* Bottom info overlay */
 .hero-card-info {
     position: absolute;
     bottom: 0;
     left: 0;
-    right: 0;
-    padding: 1.4rem 1.5rem 1.2rem;
+    right: 120px;
+    padding: 1.5rem 1.8rem;
     z-index: 5;
 }
 
 .hero-card-year {
     font-size: 0.78rem;
     font-weight: 600;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.75);
     display: block;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.25rem;
 }
 
 .hero-card-title {
     font-family: var(--font-display);
-    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-size: clamp(1.5rem, 3.2vw, 2.4rem);
     font-weight: 800;
-    color: #fff;
+    color: #ffffff;
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin-bottom: 0.6rem;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .hero-card-meta {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
 }
 
 .hero-card-rating {
     font-size: 0.78rem;
     font-weight: 600;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .hero-card-badge {
@@ -2329,75 +2415,114 @@ body.dark .navbar-scrolled { background: var(--bg-glass) !important; }
     border-radius: 4px;
 }
 
-.hero-card-details-btn {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.25);
-    padding: 0.25rem 0.7rem;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-
-.hero-card-details-btn:hover {
-    background: rgba(255,255,255,0.25);
-    color: #fff;
-}
-
-/* Hero video wrap inside new card */
-.hero-featured-card .hero-video-wrap {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-}
-
-.hero-featured-card .hero-video-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    pointer-events: none;
-}
-
-.hero-featured-card .hero-volume-btn {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    z-index: 10;
-    width: 34px;
-    height: 34px;
-}
-
 /* ── Now Watching Panel (right) ── */
 .now-watching-panel {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
 }
 
 .now-watching-title {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 800;
-    color: var(--text);
+    color: #0f172a;
     letter-spacing: -0.01em;
 }
 
 .now-watching-list {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.7rem;
 }
 
 .now-watching-card {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.85rem;
     align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.55rem 0.65rem;
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 16px;
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.now-watching-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.now-watching-thumb {
+    position: relative;
+    width: 76px;
+    height: 50px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f1f5f9;
+}
+
+.now-watching-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.now-watching-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.now-watching-card:hover .now-watching-play { opacity: 1; }
+.now-watching-play svg { width: 20px; height: 20px; }
+
+.now-watching-info { flex: 1; min-width: 0; }
+
+.now-watching-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.15rem;
+}
+
+.now-watching-pills {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0.2rem 0;
+}
+
+.now-watching-pill {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+}
+
+.now-watching-sub {
+    font-size: 0.68rem;
+    color: #64748b;
+}
+
+.now-watching-meta {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
     cursor: pointer;
     transition: box-shadow 0.2s, transform 0.2s;
     box-shadow: var(--shadow-card);

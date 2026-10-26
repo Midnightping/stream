@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=9">
+    <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
     <div id="apiKeyAlert" class="api-alert hidden">
@@ -17,8 +17,7 @@
     <nav id="navbar" class="navbar">
         <div class="navbar-inner">
             <button id="logoBtn" class="logo" type="button">
-                <span class="logo-mark">▶</span>
-                <span class="logo-text">Blvck<span>Stream</span></span>
+                <span class="logo-text">BLVCK<br><span>STREAM</span></span>
             </button>
 
             <div id="categoryNav" class="category-nav" role="tablist" aria-label="Browse categories">
@@ -74,33 +73,22 @@
                     <!-- Left: Big Featured Card -->
                     <div class="hero-featured-card" id="heroBanner">
                         <div id="heroBackdrop" class="hero-card-poster"></div>
-                        <div id="heroVideoWrap" class="hero-video-wrap hidden">
-                            <iframe id="heroVideoIframe" class="hero-video-iframe" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" title="Hero Trailer"></iframe>
-                        </div>
-                        <button id="heroVolumeBtn" class="hero-volume-btn hidden" type="button" aria-label="Mute audio">
-                            <svg id="heroVolumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                            </svg>
-                        </button>
                         <div class="hero-card-gradient"></div>
 
                         <!-- Carousel dots -->
                         <div class="hero-card-dots" id="heroDots"></div>
 
-                        <!-- Play button center -->
+                        <!-- Play button on right side of card -->
                         <button id="heroWatchBtn" class="hero-card-play-btn" type="button" aria-label="Play">
                             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         </button>
 
                         <!-- Bottom info -->
                         <div class="hero-card-info">
-                            <span id="heroYear" class="hero-card-year"></span>
-                            <h2 id="heroTitle" class="hero-card-title"></h2>
+                            <span id="heroYear" class="hero-card-year">2025</span>
+                            <h2 id="heroTitle" class="hero-card-title">Movie Title</h2>
                             <div class="hero-card-meta">
-                                <span id="heroRating" class="hero-card-rating"></span>
-                                <span id="heroTypeBadge" class="hero-card-badge">MOVIE</span>
-                                <button id="heroDetailsBtn" class="hero-card-details-btn" type="button">More Info</button>
+                                <span id="heroRating" class="hero-card-rating">★ 4.8 IMDB</span>
                             </div>
                         </div>
                     </div>
@@ -313,6 +301,7 @@
                     <div class="sports-subnav-scroll" id="sportsLeagueNav">
                         <button class="league-pill active" type="button" data-league="all">🏆 All Matches</button>
                         <button class="league-pill" type="button" data-league="popular">🔥 Popular & Top</button>
+                        <button class="league-pill ballon-dor-pill" type="button" data-league="ballondor">✨ Ballon d'Or</button>
                         <button class="league-pill" type="button" data-league="ucl">🇪🇺 Champions League</button>
                         <button class="league-pill" type="button" data-league="epl">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
                         <button class="league-pill" type="button" data-league="laliga">🇪🇸 La Liga</button>

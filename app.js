@@ -1375,7 +1375,52 @@ function isMatchLive(match) {
     return now >= start - 20 * 60 * 1000 && now <= start + 3 * 60 * 60 * 1000;
 }
 
+const BALLON_DOR_EVENT = {
+    id: 'ballon-dor-gala',
+    isSpecialEvent: true,
+    title: "Ballon d'Or 2024 Gala Ceremony",
+    category: 'football',
+    league: "Ballon d'Or · France Football",
+    competition: "Ballon d'Or",
+    popular: true,
+    isLive: true,
+    poster: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1400&q=80',
+    date: Date.now(),
+    teams: {
+        home: {
+            name: "Ballon d'Or Gala",
+            badge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="22" r="15" fill="%23d4af37"/><circle cx="20" cy="18" r="14" fill="%23f59e0b" opacity="0.6"/><path d="M24 7 C 20 14, 28 20, 24 37" stroke="%2392400e" stroke-width="1.5" fill="none"/><path d="M11 22 C 18 18, 30 26, 37 22" stroke="%2392400e" stroke-width="1.5" fill="none"/><ellipse cx="24" cy="40" rx="9" ry="3.5" fill="%2378350f"/><rect x="21" y="35" width="6" height="5" fill="%2392400e"/></svg>'
+        },
+        away: {
+            name: "Théâtre du Châtelet, Paris",
+            badge: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="%230f172a"/><path d="M24 10 L27 18 L35 19 L29 25 L31 33 L24 29 L17 33 L19 25 L13 19 L21 18 Z" fill="%23d4af37"/></svg>'
+        }
+    },
+    overview: "The 68th annual Ballon d'Or ceremony presented by France Football and UEFA live from the Théâtre du Châtelet in Paris, honoring the world's best football players.",
+    sources: [
+        {
+            name: "L'Équipe Official Gala Stream (1080p)",
+            language: "Official Stream",
+            hd: true,
+            embedUrl: "https://www.youtube-nocookie.com/embed/5aQ2hNglq14?autoplay=1"
+        },
+        {
+            name: "UEFA Live Gala Stream",
+            language: "English",
+            hd: true,
+            embedUrl: "https://www.youtube-nocookie.com/embed/wzXQo6uP4eM?autoplay=1"
+        },
+        {
+            name: "International Red Carpet & Ceremony Feed",
+            language: "International",
+            hd: true,
+            embedUrl: "https://www.youtube-nocookie.com/embed/Y7dpJ0oseIA?autoplay=1"
+        }
+    ]
+};
+
 const TOP_LEAGUE_KEYWORDS = {
+    ballondor: ['ballon', "ballon d'or", 'ballondor', 'france football', 'chatelet', 'gala'],
     ucl: ['Champions League', 'UCL', 'UEFA Champions', 'Europa League', 'Conference League', 'Super Cup'],
     epl: ['Premier League', 'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton', 'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich', 'Leicester', 'Liverpool', 'Man City', 'Manchester City', 'Man United', 'Manchester United', 'Newcastle', 'Nottingham Forest', 'Southampton', 'Tottenham', 'Spurs', 'West Ham', 'Wolves', 'Sunderland', 'Leeds'],
     laliga: ['La Liga', 'LaLiga', 'Real Madrid', 'Barcelona', 'Atletico Madrid', 'Sevilla', 'Real Betis', 'Athletic Bilbao', 'Real Sociedad', 'Valencia', 'Villarreal', 'Girona', 'Mallorca', 'Osasuna', 'Getafe', 'Celta Vigo', 'Rayo Vallecano', 'Espanyol', 'Las Palmas'],
@@ -1385,6 +1430,7 @@ const TOP_LEAGUE_KEYWORDS = {
 };
 
 function detectMatchLeagueKey(match) {
+    if (match.id === 'ballon-dor-gala' || match.isSpecialEvent) return 'ballondor';
     const text = (match.title || '') + ' ' + (match.league || '') + ' ' + (match.competition || '');
     for (const [key, keywords] of Object.entries(TOP_LEAGUE_KEYWORDS)) {
         if (keywords.some(kw => text.toLowerCase().includes(kw.toLowerCase()))) {
@@ -1395,10 +1441,12 @@ function detectMatchLeagueKey(match) {
 }
 
 function formatMatchLeague(match) {
+    if (match.id === 'ballon-dor-gala' || match.isSpecialEvent) return "Ballon d'Or · France Football";
     if (match.league) return match.league;
     if (match.competition) return match.competition;
     
     const key = detectMatchLeagueKey(match);
+    if (key === 'ballondor') return "Ballon d'Or · France Football";
     if (key === 'ucl') return 'UEFA Champions League';
     if (key === 'epl') return 'Premier League';
     if (key === 'laliga') return 'La Liga';
@@ -1411,6 +1459,10 @@ function formatMatchLeague(match) {
 
 function sortMatchesByPopularity(matches) {
     return matches.slice().sort((a, b) => {
+        // Pinned special events (like Ballon d'Or) always rank top
+        if ((a.isSpecialEvent || a.id === 'ballon-dor-gala') && !(b.isSpecialEvent || b.id === 'ballon-dor-gala')) return -1;
+        if (!(a.isSpecialEvent || a.id === 'ballon-dor-gala') && (b.isSpecialEvent || b.id === 'ballon-dor-gala')) return 1;
+
         const liveA = isMatchLive(a) ? 1 : 0;
         const liveB = isMatchLive(b) ? 1 : 0;
         if (liveA !== liveB) return liveB - liveA; // Live matches first
@@ -1429,6 +1481,7 @@ function updateLeagueNavPills(matches) {
     const counts = {
         all: matches.length,
         popular: matches.filter(m => m.popular || detectMatchLeagueKey(m) !== null).length,
+        ballondor: matches.filter(m => detectMatchLeagueKey(m) === 'ballondor').length || 1,
         ucl: matches.filter(m => detectMatchLeagueKey(m) === 'ucl').length,
         epl: matches.filter(m => detectMatchLeagueKey(m) === 'epl').length,
         laliga: matches.filter(m => detectMatchLeagueKey(m) === 'laliga').length,
@@ -1450,6 +1503,9 @@ function updateLeagueNavPills(matches) {
 
     if (isFootball) {
         html += `
+            <button class="league-pill ballon-dor-pill ${state.selectedLeague === 'ballondor' ? 'active' : ''}" type="button" data-league="ballondor">
+                ✨ Ballon d'Or <span class="pill-count">LIVE</span>
+            </button>
             <button class="league-pill ${state.selectedLeague === 'ucl' ? 'active' : ''}" type="button" data-league="ucl">
                 🇪🇺 Champions League ${counts.ucl ? `<span class="pill-count">${counts.ucl}</span>` : ''}
             </button>
@@ -1490,8 +1546,11 @@ function applySportsLeagueFilter() {
     const liveMatches = filtered.filter((match) => isMatchLive(match));
     const upcomingMatches = filtered.filter((match) => !isMatchLive(match));
 
-    // Pick top featured match
-    const featured = liveMatches[0] || filtered.find(m => m.popular) || filtered[0] || sorted[0];
+    // Pick top featured match (prioritize Ballon d'Or when selected)
+    const featured = state.selectedLeague === 'ballondor'
+        ? (filtered[0] || BALLON_DOR_EVENT)
+        : (liveMatches[0] || filtered.find(m => m.popular) || filtered[0] || sorted[0]);
+
     state.featuredSportsMatch = featured;
     if (featured) {
         renderSportsHero(featured);
@@ -1526,9 +1585,19 @@ async function loadSportsMatches(category = state.selectedSport || 'football') {
     try {
         const response = await fetch(`${SPORTSRC_API}/?data=matches&category=${encodeURIComponent(category)}`);
         const data = await response.json();
-        const matches = data?.data || data;
+        let matches = data?.data || data;
 
-        if (Array.isArray(matches) && matches.length) {
+        if (!Array.isArray(matches)) matches = [];
+
+        // If category is football, ensure BALLON_DOR_EVENT is included at the top
+        if (category === 'football') {
+            const hasBallon = matches.some(m => m.id === 'ballon-dor-gala' || detectMatchLeagueKey(m) === 'ballondor');
+            if (!hasBallon) {
+                matches = [BALLON_DOR_EVENT, ...matches];
+            }
+        }
+
+        if (matches.length) {
             state.allSportsMatches = matches;
             updateLeagueNavPills(matches);
             applySportsLeagueFilter();
@@ -1548,9 +1617,16 @@ async function loadSportsMatches(category = state.selectedSport || 'football') {
         }
     } catch (error) {
         console.error('Error loading sports matches:', error);
-        if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
-        elements.sportsGrid.innerHTML = `<p class="error-state" style="text-align:center; padding:2rem;">Error loading matches: ${error.message}</p>`;
-        showSportsView();
+        if (category === 'football') {
+            state.allSportsMatches = [BALLON_DOR_EVENT];
+            updateLeagueNavPills(state.allSportsMatches);
+            applySportsLeagueFilter();
+            showSportsView();
+        } else {
+            if (elements.sportsHero) elements.sportsHero.classList.add('hidden');
+            elements.sportsGrid.innerHTML = `<p class="error-state" style="text-align:center; padding:2rem;">Error loading matches: ${error.message}</p>`;
+            showSportsView();
+        }
     } finally {
         hideLoading();
     }
@@ -1671,7 +1747,8 @@ function renderSportsMatches(liveMatches, upcomingMatches, category, leagueKey =
 
 function createMatchCard(match) {
     const card = document.createElement('div');
-    card.className = 'match-card-modern';
+    const isSpecial = match.isSpecialEvent || match.id === 'ballon-dor-gala';
+    card.className = `match-card-modern ${isSpecial ? 'special-event-card' : ''}`;
 
     const { homeTeam, awayTeam, homeBadge, awayBadge } = matchTeamDetails(match);
     const league = formatMatchLeague(match);
@@ -1680,7 +1757,7 @@ function createMatchCard(match) {
     const time = matchDate
         ? matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : (match.time || 'TBD');
-    const score = match.score ? `${match.score.home} - ${match.score.away}` : 'VS';
+    const score = match.score ? `${match.score.home} - ${match.score.away}` : (isSpecial ? 'GALA' : 'VS');
     const posterUrl = match.poster || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80';
 
     card.innerHTML = `
@@ -1690,7 +1767,8 @@ function createMatchCard(match) {
             <div class="match-card-top">
                 <span class="match-card-league">${league}</span>
                 <div class="match-card-badge-wrap">
-                    ${match.popular ? '<span class="match-pill-popular">🔥 Hot</span>' : ''}
+                    ${isSpecial ? '<span class="match-pill-gala">🏆 GALA</span>' : ''}
+                    ${match.popular && !isSpecial ? '<span class="match-pill-popular">🔥 Hot</span>' : ''}
                     ${live ? '<span class="match-pill-live">🔴 LIVE</span>' : `<span class="match-pill-time">⏱ ${time}</span>`}
                 </div>
             </div>
@@ -1704,7 +1782,7 @@ function createMatchCard(match) {
                 </div>
                 
                 <div class="match-card-vs-box">
-                    <span class="match-vs-tag">${live ? score : 'VS'}</span>
+                    <span class="match-vs-tag">${live ? score : (isSpecial ? 'GALA' : 'VS')}</span>
                 </div>
                 
                 <div class="match-card-team away">
@@ -1754,11 +1832,18 @@ async function openSportsMatch(match) {
 
     elements.playerTitle.textContent = match.title || `${homeTeam} vs ${awayTeam}`;
     elements.playerReleaseDate.textContent = league;
-    elements.playerOverview.textContent = isMatchLive(match) ? 'Live match' : 'Loading stream sources…';
+    elements.playerOverview.textContent = match.overview || (isMatchLive(match) ? 'Live match' : 'Loading stream sources…');
     elements.videoContainer.innerHTML = '';
     elements.loadingSpinner.classList.remove('hidden');
     if (elements.selectedSourceName) elements.selectedSourceName.textContent = 'Loading…';
     window.scrollTo(0, 0);
+
+    // If sources are already pre-configured (e.g. Ballon d'Or or custom special event)
+    if (Array.isArray(match.sources) && match.sources.length > 0) {
+        state.sportsSources = match.sources;
+        loadSportsEmbed(0);
+        return;
+    }
 
     try {
         const detail = await fetchSportsDetail(match.id, match.category || state.selectedSport || 'football');
